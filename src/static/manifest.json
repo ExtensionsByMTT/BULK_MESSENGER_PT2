@@ -1,0 +1,27 @@
+{
+  "name": "Extension Name",
+  "description": "description",
+  "version": "1.6.0",
+  "manifest_version": 3,
+  "icons": {
+    // "16": "",
+    // "48": "",
+    // "128": ""
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Extension Name"
+  },
+  "permissions": [],
+
+  "options_page": "options.html",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["contentScript.js"]
+    }
+  ]
+}
