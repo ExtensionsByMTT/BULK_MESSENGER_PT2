@@ -1,7 +1,7 @@
 {
-  "name": "Extension Name",
-  "description": "description",
-  "version": "1.6.0",
+  "name": "BULK_MESSENGER",
+  "description": "This extension is for BULK_MESSENGING on facebook using user's facebook id's",
+  "version": "1.0.0",
   "manifest_version": 3,
   "icons": {
     // "16": "",
@@ -10,10 +10,9 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Extension Name"
+    "default_title": "BULK_MESSENGER"
   },
-  "permissions": [],
-
+  "permissions": ["storage"],
   "options_page": "options.html",
   "background": {
     "service_worker": "background.js"
