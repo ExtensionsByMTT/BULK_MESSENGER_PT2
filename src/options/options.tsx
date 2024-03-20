@@ -1,45 +1,25 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import "./options.css";
-import { io } from "socket.io-client";
-export const serverApi = "http://localhost:8080";
 
 const App = () => {
   const [message, setMessage] = useState("");
-  const [links, setLinks] = useState("");
-  const [time, setTime] = useState("1");
-  const [queue, setQueue] = useState("2");
+  const [recipients, setRecipients] = useState("");
+  const [time, setTime] = useState("");
+  const [count, setCount] = useState("");
+
   const submitHandler = (e) => {
     e.preventDefault();
-    try {
-      const socket = io(`${serverApi}`);
-      const newUsersArray = links.trim().split(/\s*,\s*/);
-      socket.emit("sendData", message, newUsersArray, time, queue);
-      socket.on("sendIds", (msg, batch) => {
-        sendMessageToUser(batch, msg);
-        console.log(batch, "current batch ");
-      });
-      socket.on("endMsg", (endMsg) => {
-        socket.disconnect();
-      });
-    } catch (error) {
-    } finally {
-      setMessage("");
-      setLinks("");
-    }
-  };
 
-  const sendMessageToUser = (users, message) => {
-    users.forEach((user) => {
-      chrome.runtime.sendMessage({
-        action: "SEND_MESSAGE",
-        user,
-        message,
-      });
+    const ids = recipients.split(",");
+    const data = { message, ids, time, count };
+    console.log("DATA  : ", data);
+    chrome.runtime.sendMessage({ data: data }, (res) => {
+      if (res.status === "ok") {
+        alert("Data sent to Background.js");
+      }
     });
   };
-
-  ///////////////////
   return (
     <>
       <div className="container">
@@ -73,8 +53,8 @@ const App = () => {
                 <select
                   name="time"
                   id="queue"
-                  value={queue}
-                  onChange={(e) => setQueue(e.target.value)}
+                  value={count}
+                  onChange={(e) => setCount(e.target.value)}
                 >
                   <option value="2">2</option>
                   <option value="3">3</option>
@@ -98,8 +78,8 @@ const App = () => {
                     name="userid"
                     id="userid"
                     className="user-link-input"
-                    value={links}
-                    onChange={(e) => setLinks(e.target.value)}
+                    value={recipients}
+                    onChange={(e) => setRecipients(e.target.value)}
                   />
                 </div>
 
