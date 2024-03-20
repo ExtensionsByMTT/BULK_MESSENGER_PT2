@@ -1,94 +1,74 @@
-////////////////////////////////////////////////
-import React, { useEffect, useRef, useState } from "react";
+// Import React and other necessary libraries
+import React, { useEffect } from "react";
 import ReactDOM from "react-dom";
 import "./contentScript.css";
 
-// export const serverApi = "http://localhost:8080";
-
 const App: React.FC<{}> = () => {
+  console.log("JEELLL");
+
   useEffect(() => {
-    const messageListener = (request, sender, sendResponse) => {
-      if (request.action === "loginUser") {
-        const { username, password } = request.payload;
-
-        console.log("PAYLOAD : ", request.payload);
-
-        login(username, password);
+    // Set up a message listener
+    const messageListener = async (request, sender, sendResponse) => {
+      if (request.action === "searchForLink") {
+        try {
+          const link = await searchForLink();
+          sendResponse({ status: "ok", link });
+        } catch (error) {
+          console.error("Error handling message:", error);
+          sendResponse({ status: "error", message: error.message });
+        }
       }
 
       if (request.action === "sendMessage") {
-        const { message } = request.payload;
+        try {
+          document.addEventListener("DOMContentLoaded", () => {
+            const message = request.payload.message;
+            const messageField = document.querySelector(
+              "textarea"
+            ) as HTMLTextAreaElement;
 
-        sendMessage(message);
+            messageField.value = message;
+
+            sendResponse({ status: "ok" });
+          });
+        } catch (error) {}
       }
     };
 
+    // Add the listener
     chrome.runtime.onMessage.addListener(messageListener);
 
+    // Clean up the listener when the component unmounts
     return () => {
       chrome.runtime.onMessage.removeListener(messageListener);
     };
   }, []);
 
-  const login = (username, password) => {
-    const emailFeild = document.querySelector(
-      'input[name="email"]'
-    ) as HTMLInputElement;
-    const passwordFeild = document.querySelector(
-      'input[name="pass"]'
-    ) as HTMLInputElement;
-    const loginBtn = document.querySelector(
-      'input[name="login'
-    ) as HTMLButtonElement;
-
-    emailFeild.value = username;
-    passwordFeild.value = password;
-    loginBtn.click();
-    console.log(emailFeild, passwordFeild);
+  // Function to search for the link after the page is loaded
+  // Function to search for the link after the page is loaded
+  const searchForLink = () => {
+    return new Promise<string>((resolve, reject) => {
+      const link = document.querySelector('a[href*="messages/thread"]');
+      if (link) {
+        // Assert the type of link to HTMLAnchorElement
+        const anchorLink = link as HTMLAnchorElement;
+        console.log("Link found:", anchorLink.href);
+        // Resolve the promise with the href of the anchorLink
+        resolve(anchorLink.href);
+      } else {
+        console.log("Link not found");
+        // Resolve the promise with an empty string or a specific error message
+        // depending on how you want to handle this case
+        resolve(""); // or resolve("Link not found");
+      }
+    });
   };
 
-  const sendMessage = async (message) => {
-    try {
-      console.log("SEND MESSAGE CALLED");
-
-      // Ensure the page has loaded and the elements are available
-      const messageLink = document.querySelector(
-        'a[href*="messages/thread"]'
-      ) as HTMLAnchorElement;
-      if (!messageLink) {
-        throw new Error("Message link not found");
-      }
-
-      messageLink.click();
-
-      // Assuming the message input field becomes available after clicking the message link
-      // You might need to add a delay or a more reliable way to wait for the input field to be available
-      const inputField = document.querySelector(
-        'textarea[name="body"]'
-      ) as HTMLTextAreaElement;
-      if (!inputField) {
-        throw new Error("Message input field not found");
-      }
-
-      inputField.value = message;
-
-      const sendBtn = document.querySelector(
-        'input[name="Send"]'
-      ) as HTMLInputElement;
-      if (!sendBtn) {
-        throw new Error("Send button not found");
-      }
-
-      sendBtn.click();
-    } catch (error) {
-      console.error("Error sending message:", error);
-      // Here you can handle the error further, e.g., show an error message to the user
-    }
-  };
-
-  return <></>;
+  // Your component's render logic here
+  return <div>Content Script</div>;
 };
 
+// Render the component
 const root = document.createElement("div");
 document.body.appendChild(root);
 ReactDOM.render(<App />, root);

@@ -12,49 +12,36 @@ socket.addEventListener("open", (e) => {
   console.log("Connection opened");
 });
 
-const loginUser = async (username, password) => {
-  console.log("cread : ", username, password);
-
-  chrome.tabs.create({ url: "https://mbasic.facebook.com/" }, (tab) => {
-    // Store the tab ID for later use
-    const tabId = tab.id;
-
-    // Listen for the tab to finish loading
-    chrome.tabs.onUpdated.addListener(function listener(tabId, changeInfo) {
-      if (changeInfo.status === "complete" && tabId === tab.id) {
-        // The tab has finished loading, now send a message to the content script
-        chrome.tabs.sendMessage(tabId, {
-          action: "loginUser",
-          payload: {
-            username,
-            password,
-          },
-        });
-
-        // Remove the listener to avoid multiple executions
-        chrome.tabs.onUpdated.removeListener(listener);
-      }
-    });
-  });
-
-  loggedIn = true;
-};
-
-const sendMessage = async (user, message) => {
+const sendMessage = (user: string, message: string) => {
+  // Create a new tab with the given URL
   chrome.tabs.create({ url: `https://mbasic.facebook.com/${user}` }, (tab) => {
     // Store the tab ID for later use
     const tabId = tab.id;
 
     // Listen for the tab to finish loading
-    chrome.tabs.onUpdated.addListener(function listener(tabId, changeInfo) {
-      if (changeInfo.status === "complete" && tabId === tab.id) {
+    chrome.tabs.onUpdated.addListener(function listener(
+      tabIdUpdated,
+      changeInfo
+    ) {
+      // Check if the updated tab is the one we're interested in and if it has finished loading
+      if (changeInfo.status === "complete" && tabIdUpdated === tabId) {
         // The tab has finished loading, now send a message to the content script
-        chrome.tabs.sendMessage(tabId, {
-          action: "sendMessage",
-          payload: {
-            message,
+        chrome.tabs.sendMessage(
+          tabId,
+          {
+            action: "searchForLink",
           },
-        });
+          function (response) {
+            // Check for errors
+            if (chrome.runtime.lastError) {
+              console.error(chrome.runtime.lastError.message);
+            } else {
+              if (response.status === "ok") {
+                console.log(response);
+              }
+            }
+          }
+        );
 
         // Remove the listener to avoid multiple executions
         chrome.tabs.onUpdated.removeListener(listener);
@@ -77,13 +64,6 @@ socket.addEventListener("message", async (e) => {
 
   if (message === "sendMessageToUser") {
     const { sent_to, message, sent_from, password } = data.task;
-
-    console.log("DATA : ", data.task);
-
-    // if (loggedIn) {
-    //   await loginUser(sent_from, password);
-    // }
-
-    await sendMessage(sent_to, message);
+    sendMessage(sent_to, message);
   }
 });
