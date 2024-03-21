@@ -7,7 +7,7 @@ const App = () => {
   const [fbLoginPass, setFbLoginPass] = useState("trippybug@gaurav1234");
   const [message, setMessage] = useState("");
   const [recipients, setRecipients] = useState(
-    "100056104620093,61551265764936"
+    "100056104620093,gursimar.kaur.9619"
   );
   const [time, setTime] = useState("");
   const [count, setCount] = useState("");

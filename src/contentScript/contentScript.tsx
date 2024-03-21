@@ -20,18 +20,21 @@ const App: React.FC<{}> = () => {
       }
 
       if (request.action === "sendMessage") {
+        const id = request.payload.id;
+        const user = request.payload.user;
+        const message = request.payload.message;
+
         try {
-          document.addEventListener("DOMContentLoaded", () => {
-            const message = request.payload.message;
-            const messageField = document.querySelector(
-              "textarea"
-            ) as HTMLTextAreaElement;
-
-            messageField.value = message;
-
-            sendResponse({ status: "ok" });
+          const res = await sendMessage(id, user, message);
+          sendResponse({ res });
+        } catch (error) {
+          sendResponse({
+            status: "failed",
+            id: id,
+            user: user,
+            message: message,
           });
-        } catch (error) {}
+        }
       }
     };
 
@@ -44,7 +47,6 @@ const App: React.FC<{}> = () => {
     };
   }, []);
 
-  // Function to search for the link after the page is loaded
   // Function to search for the link after the page is loaded
   const searchForLink = () => {
     return new Promise<string>((resolve, reject) => {
@@ -60,6 +62,63 @@ const App: React.FC<{}> = () => {
         // Resolve the promise with an empty string or a specific error message
         // depending on how you want to handle this case
         resolve(""); // or resolve("Link not found");
+      }
+    });
+  };
+
+  const sendMessage = (id, user, message) => {
+    return new Promise((resolve, reject) => {
+      try {
+        const textAreaField = document.querySelector(
+          'textarea[name="body"]'
+        ) as HTMLTextAreaElement;
+        const buttonField = document.querySelector(
+          'input[name="send"]'
+        ) as HTMLButtonElement;
+
+        if (!textAreaField) {
+          resolve({
+            id,
+            status: "failed",
+            message,
+            user,
+          });
+          return; // Exit the function if the textarea is not found
+        }
+
+        textAreaField.value = message;
+
+        if (!buttonField) {
+          const buttonField2 = document.querySelector(
+            'input[name="Send"]'
+          ) as HTMLButtonElement;
+
+          if (buttonField2) {
+            buttonField2.click();
+            resolve({
+              id,
+              status: "success",
+              message,
+              user,
+            });
+            return; // Exit the function after sending the message
+          }
+        }
+
+        buttonField.click();
+        resolve({
+          id,
+          status: "success",
+          message,
+          user,
+        });
+      } catch (error) {
+        reject({
+          id,
+          status: "failed",
+          message,
+          user,
+        });
       }
     });
   };

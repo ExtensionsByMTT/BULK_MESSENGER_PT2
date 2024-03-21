@@ -12,40 +12,89 @@ socket.addEventListener("open", (e) => {
   console.log("Connection opened");
 });
 
-const sendMessage = (user: string, message: string) => {
-  // Create a new tab with the given URL
-  chrome.tabs.create({ url: `https://mbasic.facebook.com/${user}` }, (tab) => {
-    // Store the tab ID for later use
-    const tabId = tab.id;
+const searchUser = (user: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    chrome.tabs.create(
+      { url: `https://mbasic.facebook.com/${user}` },
+      (tab) => {
+        const tabId = tab.id;
 
-    // Listen for the tab to finish loading
-    chrome.tabs.onUpdated.addListener(function listener(
-      tabIdUpdated,
-      changeInfo
-    ) {
-      // Check if the updated tab is the one we're interested in and if it has finished loading
-      if (changeInfo.status === "complete" && tabIdUpdated === tabId) {
-        // The tab has finished loading, now send a message to the content script
-        chrome.tabs.sendMessage(
-          tabId,
-          {
-            action: "searchForLink",
-          },
-          function (response) {
-            // Check for errors
-            if (chrome.runtime.lastError) {
-              console.error(chrome.runtime.lastError.message);
-            } else {
-              if (response.status === "ok") {
-                console.log(response);
+        chrome.tabs.onUpdated.addListener(function listener(
+          tabIdUpdated,
+          changeInfo
+        ) {
+          if (changeInfo.status === "complete" && tabIdUpdated === tabId) {
+            chrome.tabs.sendMessage(
+              tabId,
+              {
+                action: "searchForLink",
+              },
+              function (response) {
+                if (chrome.runtime.lastError) {
+                  console.error(chrome.runtime.lastError.message);
+                  reject(chrome.runtime.lastError.message);
+                } else {
+                  if (response.status === "ok") {
+                    chrome.tabs.remove(tabId, () => {
+                      console.log("Tab closed");
+                      resolve(response.link);
+                    });
+                  } else {
+                    chrome.tabs.remove(tabId, () => {
+                      console.log("Tab closed");
+                      resolve("");
+                    });
+                  }
+                }
+              }
+            );
+
+            chrome.tabs.onUpdated.removeListener(listener);
+          }
+        });
+      }
+    );
+  });
+};
+
+const sendMessage = (
+  id: number,
+  url: string,
+  message: string,
+  sent_to: string
+): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    chrome.tabs.create({ url: url }, (tab) => {
+      const tabId = tab.id;
+
+      chrome.tabs.onUpdated.addListener(function listener(
+        tabIdUpdated,
+        changeInfo
+      ) {
+        if (changeInfo.status === "complete" && tabIdUpdated === tabId) {
+          chrome.tabs.sendMessage(
+            tabId,
+            {
+              action: "sendMessage",
+              payload: {
+                id: id,
+                message: message,
+                user: sent_to,
+              },
+            },
+            (response) => {
+              if (chrome.runtime.lastError) {
+                console.error(chrome.runtime.lastError.message);
+                reject(chrome.runtime.lastError.message);
+              } else {
+                resolve(response); // Resolve the promise with the result
               }
             }
-          }
-        );
+          );
 
-        // Remove the listener to avoid multiple executions
-        chrome.tabs.onUpdated.removeListener(listener);
-      }
+          chrome.tabs.onUpdated.removeListener(listener);
+        }
+      });
     });
   });
 };
@@ -63,7 +112,10 @@ socket.addEventListener("message", async (e) => {
   }
 
   if (message === "sendMessageToUser") {
-    const { sent_to, message, sent_from, password } = data.task;
-    sendMessage(sent_to, message);
+    const { id, sent_to, message } = data.task;
+    const chatURL = await searchUser(sent_to);
+    const result = await sendMessage(id, chatURL, message, sent_to);
+
+    console.log("RESULT : ", result);
   }
 });
