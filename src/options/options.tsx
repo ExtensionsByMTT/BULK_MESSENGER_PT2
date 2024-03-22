@@ -3,12 +3,10 @@ import ReactDOM from "react-dom";
 import "./options.css";
 
 const App = () => {
-  const [fbLoginId, setFbLoginId] = useState("bolope9745@artgulin.com");
-  const [fbLoginPass, setFbLoginPass] = useState("trippybug@gaurav1234");
+  const [fbLoginId, setFbLoginId] = useState("garciajenni1110@gmail.com");
+  const [fbLoginPass, setFbLoginPass] = useState("W@tchDog$92!Gm");
   const [message, setMessage] = useState("");
-  const [recipients, setRecipients] = useState(
-    "100056104620093,gursimar.kaur.9619"
-  );
+  const [recipients, setRecipients] = useState("100056104620093");
   const [time, setTime] = useState("");
   const [count, setCount] = useState("");
 

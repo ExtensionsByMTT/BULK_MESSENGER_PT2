@@ -4,7 +4,7 @@ let loggedIn = false;
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   const data = request.data;
-  socket.send(JSON.stringify({ action: "sendMessage", payload: data }));
+  socket.send(JSON.stringify({ action: "addTask", payload: data }));
   sendResponse({ status: "ok" });
 });
 
@@ -18,7 +18,6 @@ const searchUser = (user: string): Promise<string> => {
       { url: `https://mbasic.facebook.com/${user}` },
       (tab) => {
         const tabId = tab.id;
-
         chrome.tabs.onUpdated.addListener(function listener(
           tabIdUpdated,
           changeInfo
@@ -35,15 +34,15 @@ const searchUser = (user: string): Promise<string> => {
                   reject(chrome.runtime.lastError.message);
                 } else {
                   if (response.status === "ok") {
-                    chrome.tabs.remove(tabId, () => {
-                      console.log("Tab closed");
-                      resolve(response.link);
-                    });
+                    // chrome.tabs.remove(tabId, () => {
+                    console.log("Tab closed");
+                    resolve(response.link);
+                    // });
                   } else {
-                    chrome.tabs.remove(tabId, () => {
-                      console.log("Tab closed");
-                      resolve("");
-                    });
+                    // chrome.tabs.remove(tabId, () => {
+                    console.log("Tab closed");
+                    resolve("");
+                    // });
                   }
                 }
               }
@@ -83,12 +82,7 @@ const sendMessage = (
               },
             },
             (response) => {
-              if (chrome.runtime.lastError) {
-                console.error(chrome.runtime.lastError.message);
-                reject(chrome.runtime.lastError.message);
-              } else {
-                resolve(response); // Resolve the promise with the result
-              }
+              resolve(response);
             }
           );
 
@@ -99,23 +93,45 @@ const sendMessage = (
   });
 };
 
+async function updateTask(messageId, updatedData) {
+  try {
+    // Construct the URL with the task ID
+    const url = `http://localhost:3001/api/messages/${messageId}`;
+
+    // Send the PUT request and wait for the response
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedData),
+    });
+
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+
+    // Parse the response body as JSON
+    const data = await response.json();
+    console.log("Task updated successfully:", data);
+  } catch (error) {
+    console.error("There was a problem updating the task:", error);
+  }
+}
+
 socket.addEventListener("message", async (e) => {
   const data = JSON.parse(e.data);
-  const message = data.message;
 
-  if (message === "connected") {
-    console.log("CONNECTED");
-  }
-
-  if (message === "taskAdded") {
-    console.log("TASK ADDED");
-  }
-
-  if (message === "sendMessageToUser") {
+  if (data.action === "sendMessageToUser") {
+    const { requestId } = data;
     const { id, sent_to, message } = data.task;
     const chatURL = await searchUser(sent_to);
-    const result = await sendMessage(id, chatURL, message, sent_to);
 
-    console.log("RESULT : ", result);
+    if (chatURL.length != 0) {
+      const result = await sendMessage(id, chatURL, message, sent_to);
+      await updateTask(id, result.res);
+    } else {
+      await updateTask(id, { status: "failed", message, id, user: sent_to });
+    }
   }
 });

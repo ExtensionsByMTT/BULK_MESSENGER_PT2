@@ -23,9 +23,10 @@ const App: React.FC<{}> = () => {
         const id = request.payload.id;
         const user = request.payload.user;
         const message = request.payload.message;
+        const requestId = request.payload.requestId;
 
         try {
-          const res = await sendMessage(id, user, message);
+          const res = await sendMessage(id, user, message, requestId);
           sendResponse({ res });
         } catch (error) {
           sendResponse({
@@ -66,7 +67,7 @@ const App: React.FC<{}> = () => {
     });
   };
 
-  const sendMessage = (id, user, message) => {
+  const sendMessage = (id, user, message, requestId) => {
     return new Promise((resolve, reject) => {
       try {
         const textAreaField = document.querySelector(
@@ -82,42 +83,32 @@ const App: React.FC<{}> = () => {
             status: "failed",
             message,
             user,
+            requestId,
           });
           return; // Exit the function if the textarea is not found
         }
 
         textAreaField.value = message;
 
-        if (!buttonField) {
-          const buttonField2 = document.querySelector(
-            'input[name="Send"]'
-          ) as HTMLButtonElement;
+        const buttonField2 = document.querySelector(
+          'input[name="Send"]'
+        ) as HTMLButtonElement;
 
-          if (buttonField2) {
-            buttonField2.click();
-            resolve({
-              id,
-              status: "success",
-              message,
-              user,
-            });
-            return; // Exit the function after sending the message
-          }
+        const buttonToClick = buttonField2 || buttonField;
+
+        if (buttonToClick) {
+          buttonToClick.click();
+          resolve({ id, status: "success", message, user, requestId });
+        } else {
+          resolve({ id, status: "failed", message, user, requestId });
         }
-
-        buttonField.click();
-        resolve({
-          id,
-          status: "success",
-          message,
-          user,
-        });
       } catch (error) {
         reject({
           id,
           status: "failed",
           message,
           user,
+          requestId,
         });
       }
     });
