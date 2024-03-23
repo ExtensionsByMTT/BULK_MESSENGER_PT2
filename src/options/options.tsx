@@ -3,18 +3,16 @@ import ReactDOM from "react-dom";
 import "./options.css";
 
 const App = () => {
-  const [fbLoginId, setFbLoginId] = useState("garciajenni1110@gmail.com");
-  const [fbLoginPass, setFbLoginPass] = useState("W@tchDog$92!Gm");
   const [message, setMessage] = useState("");
   const [recipients, setRecipients] = useState("100056104620093");
-  const [time, setTime] = useState("");
-  const [count, setCount] = useState("");
+  const [time, setTime] = useState("1");
+  const [count, setCount] = useState("2");
 
   const submitHandler = (e) => {
     e.preventDefault();
 
     const ids = recipients.split(",");
-    const data = { message, ids, time, count, fbLoginId, fbLoginPass };
+    const data = { message, ids, time, count };
     chrome.runtime.sendMessage({ data: data }, (res) => {
       if (res.status === "ok") {
         alert("Data sent to Background.js");
@@ -38,20 +36,6 @@ const App = () => {
 
             <div className="form">
               <form>
-                <input
-                  type="text"
-                  name="fbUsernameId"
-                  id="fbUsernameId"
-                  value={fbLoginId}
-                  onChange={(e) => setFbLoginId(e.target.value)}
-                />
-                <input
-                  type="password"
-                  name="fbLoginPass"
-                  id="fbLoginPass"
-                  value={fbLoginPass}
-                  onChange={(e) => setFbLoginPass(e.target.value)}
-                />
                 <select
                   name="time"
                   id="settime"

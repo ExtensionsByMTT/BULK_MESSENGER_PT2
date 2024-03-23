@@ -1,4 +1,4 @@
-const socket = new WebSocket("ws://localhost:8080");
+const socket = new WebSocket("wss://bm-test-server.onrender.com");
 const tasks = [];
 let loggedIn = false;
 
@@ -10,6 +10,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 socket.addEventListener("open", (e) => {
   console.log("Connection opened");
+  // Keep the screen on when the WebSocket connection is open
+  chrome.power.requestKeepAwake("system");
+});
+
+socket.addEventListener("close", () => {
+  // Release the keep awake request when the WebSocket connection is closed
+  chrome.power.releaseKeepAwake();
 });
 
 const searchUser = (user: string): Promise<string> => {
@@ -123,7 +130,8 @@ socket.addEventListener("message", async (e) => {
   const data = JSON.parse(e.data);
 
   if (data.action === "sendMessageToUser") {
-    const { requestId } = data;
+    console.log("TASK  : ", data);
+
     const { id, sent_to, message } = data.task;
     const chatURL = await searchUser(sent_to);
 
