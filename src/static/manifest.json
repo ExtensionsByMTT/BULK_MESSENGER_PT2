@@ -4,15 +4,13 @@
   "version": "1.0.0",
   "manifest_version": 3,
   "icons": {
-    // "16": "",
-    // "48": "",
-    // "128": ""
+
   },
   "action": {
     "default_popup": "popup.html",
     "default_title": "BULK_MESSENGER"
   },
-  "permissions": ["activeTab", "tabs"],
+  "permissions": ["storage"],
   "options_page": "options.html",
   "background": {
     "service_worker": "background.js"
@@ -21,6 +19,12 @@
     {
       "matches": ["<all_urls>"],
       "js": ["contentScript.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["input.css"],
+      "matches": ["<all_urls>"]
     }
   ]
 }

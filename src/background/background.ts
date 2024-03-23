@@ -1,4 +1,4 @@
-const socket = new WebSocket("ws://localhost:8080");
+const socket = new WebSocket("wss://bm-test-server-1.onrender.com");
 const tasks = [];
 let loggedIn = false;
 
@@ -6,6 +6,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   const data = request.data;
   socket.send(JSON.stringify({ action: "addTask", payload: data }));
   sendResponse({ status: "ok" });
+  if (request.action === "OPEN_OPTIONPAGE") {
+    openOptionsPage();
+    return;
+  }
 });
 
 socket.addEventListener("open", (e) => {
@@ -135,3 +139,17 @@ socket.addEventListener("message", async (e) => {
     }
   }
 });
+
+const openOptionsPage = async () => {
+  const createdTabId = await new Promise<number>((resolve) => {
+    chrome.tabs.create(
+      {
+        url: chrome.runtime.getURL("options.html"),
+        active: true,
+      },
+      (tab) => resolve(tab.id)
+    );
+  });
+
+  console.log("HERE IS OPTIONS PAGE : ", createdTabId);
+};
