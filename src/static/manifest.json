@@ -10,7 +10,7 @@
     "default_popup": "popup.html",
     "default_title": "BULK_MESSENGER"
   },
-  "permissions": ["storage","power"],
+  "permissions": ["storage","power","alarms"],
   "options_page": "options.html",
   "background": {
     "service_worker": "background.js"
