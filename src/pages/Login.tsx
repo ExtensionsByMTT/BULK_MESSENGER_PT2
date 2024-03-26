@@ -28,6 +28,8 @@ const Login = () => {
       } else toast.error(response.data.message);
       if (response?.data?.token) {
         chrome.storage.local.set({ token: response?.data?.token });
+        chrome.storage.local.set({ username: response?.data?.username });
+
         window.location.reload();
       }
       setFormData({ username: "", password: "" });
