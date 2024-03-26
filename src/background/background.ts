@@ -41,10 +41,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("WebSocket is not open. Current state:", socket.readyState);
   }
   sendResponse({ status: "ok" });
-  if (request.action === "OPEN_OPTIONPAGE") {
-    openOptionsPage();
-    return;
-  }
 });
 
 const searchUser = (user: string): Promise<string> => {
@@ -172,16 +168,4 @@ socket.addEventListener("message", async (e) => {
   }
 });
 
-const openOptionsPage = async () => {
-  const createdTabId = await new Promise<number>((resolve) => {
-    chrome.tabs.create(
-      {
-        url: chrome.runtime.getURL("options.html"),
-        active: true,
-      },
-      (tab) => resolve(tab.id)
-    );
-  });
-
-  console.log("HERE IS OPTIONS PAGE : ", createdTabId);
-};
+connect();
