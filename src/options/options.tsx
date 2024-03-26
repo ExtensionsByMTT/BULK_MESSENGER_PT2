@@ -20,8 +20,8 @@ const App = () => {
     });
   };
   return (
-    <>
-      <div className="container">
+    <div className="container">
+      {/* <div className="container">
         <div className="left">
           <div className="left-container">
             <div className="titles">
@@ -89,14 +89,48 @@ const App = () => {
             </div>
           </div>
         </div>
+      </div> */}
+
+      <div className="left">
+        <div className="left-inner-container">
+          <div className="logo">
+            <img src="logo.png" alt="logo " />
+          </div>
+          <form className="form">
+            <div className="input">
+              <input
+                type="email"
+                name="email"
+                id="email"
+                placeholder="E-MAIL"
+              />
+            </div>
+            <div className="input">
+              <input
+                type="password"
+                name="password"
+                id="password"
+                placeholder="PASSWORD"
+              />
+            </div>
+            <div className="input">
+              <button>Login</button>
+            </div>
+          </form>
+        </div>
       </div>
-    </>
+      <div className="right">
+        <div className="right-inner-container">
+          <img src="login-banner.png" alt="login" />
+        </div>
+      </div>
+    </div>
   );
 };
 
 export default App;
 
 const root = document.createElement("div");
-root.id = "options-bulk-sender";
+root.id = "dashboard";
 document.body.appendChild(root);
 ReactDOM.render(<App />, root);

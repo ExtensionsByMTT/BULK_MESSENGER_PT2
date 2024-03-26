@@ -1,22 +1,46 @@
-const socket = new WebSocket("wss://bm-test-server.onrender.com");
-const tasks = [];
-let loggedIn = false;
+let socket = new WebSocket("wss://bm-test-server.onrender.com");
+let reconnectAttempt = 0;
+const maxReconnectAttempts = 5;
+const maxReconnectDelay = 30000;
+
+const connect = () => {
+  socket = new WebSocket("wss://bm-test-server.onrender.com");
+  console.log("Reconnect Attempt : ", reconnectAttempt);
+
+  socket.addEventListener("open", (e) => {
+    console.log("Connection opened");
+    chrome.power.requestKeepAwake("system");
+    reconnectAttempt = 0;
+  });
+
+  socket.addEventListener("close", () => {
+    console.log("Connection closed, attempting to reconnect...");
+    if (reconnectAttempt < maxReconnectAttempts) {
+      const delay = Math.min(1000 * 2 ** reconnectAttempt, maxReconnectDelay);
+      console.log(`Attempting to reconnect in ${delay / 1000} seconds...`);
+      chrome.alarms.create("reconnect", { delayInMinutes: delay / 60000 });
+      reconnectAttempt++;
+    } else {
+      console.log("Maximum reconnection attempts reached.");
+      chrome.power.releaseKeepAwake();
+    }
+  });
+};
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === "reconnect") {
+    connect();
+  }
+});
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   const data = request.data;
-  socket.send(JSON.stringify({ action: "addTask", payload: data }));
+  if (socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify({ action: "addTask", payload: data }));
+  } else {
+    console.log("WebSocket is not open. Current state:", socket.readyState);
+  }
   sendResponse({ status: "ok" });
-});
-
-socket.addEventListener("open", (e) => {
-  console.log("Connection opened");
-  // Keep the screen on when the WebSocket connection is open
-  chrome.power.requestKeepAwake("system");
-});
-
-socket.addEventListener("close", () => {
-  // Release the keep awake request when the WebSocket connection is closed
-  chrome.power.releaseKeepAwake();
 });
 
 const searchUser = (user: string): Promise<string> => {
@@ -103,7 +127,7 @@ const sendMessage = (
 async function updateTask(messageId, updatedData) {
   try {
     // Construct the URL with the task ID
-    const url = `http://localhost:3001/api/messages/${messageId}`;
+    const url = `https://bm-test-server.onrender.com/api/messages/${messageId}`;
 
     // Send the PUT request and wait for the response
     const response = await fetch(url, {
@@ -143,3 +167,5 @@ socket.addEventListener("message", async (e) => {
     }
   }
 });
+
+connect();
