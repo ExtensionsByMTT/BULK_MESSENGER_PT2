@@ -9,6 +9,14 @@ const connect = () => {
 
   socket.addEventListener("open", (e) => {
     console.log("Connection opened");
+
+    chrome.storage.local.get("token", (token) => {
+      if (token.token) {
+        socket.send(
+          JSON.stringify({ action: "checkPendingTask", token: token.token })
+        );
+      }
+    });
     chrome.power.requestKeepAwake("system");
     reconnectAttempt = 0;
   });
@@ -25,22 +33,34 @@ const connect = () => {
       chrome.power.releaseKeepAwake();
     }
   });
+
+  socket.addEventListener("message", async (e) => {
+    const data = JSON.parse(e.data);
+
+    if (data.action === "sendMessageToUser") {
+      console.log("TASK  : ", data);
+
+      const { id, sent_to, message } = data.task;
+      const chatURL = await searchUser(sent_to);
+
+      if (chatURL.length != 0) {
+        const result = await sendMessage(id, chatURL, message, sent_to);
+        await updateTask(id, result.res);
+      } else {
+        await updateTask(id, { status: "failed", message, id, user: sent_to });
+      }
+    }
+
+    if (data.action === "timeLeft") {
+      console.log(`Time left: ${data.seconds} seconds`);
+    }
+  });
 };
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === "reconnect") {
     connect();
   }
-});
-
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  const data = request.data;
-  if (socket.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify({ action: "addTask", payload: data }));
-  } else {
-    console.log("WebSocket is not open. Current state:", socket.readyState);
-  }
-  sendResponse({ status: "ok" });
 });
 
 const searchUser = (user: string): Promise<string> => {
@@ -150,21 +170,15 @@ async function updateTask(messageId, updatedData) {
   }
 }
 
-socket.addEventListener("message", async (e) => {
-  const data = JSON.parse(e.data);
-
-  if (data.action === "sendMessageToUser") {
-    console.log("TASK  : ", data);
-
-    const { id, sent_to, message } = data.task;
-    const chatURL = await searchUser(sent_to);
-
-    if (chatURL.length != 0) {
-      const result = await sendMessage(id, chatURL, message, sent_to);
-      await updateTask(id, result.res);
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  const data = request.data;
+  if (request.type === "addTask") {
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ action: "addTask", payload: data }));
     } else {
-      await updateTask(id, { status: "failed", message, id, user: sent_to });
+      console.log("WebSocket is not open. Current state:", socket.readyState);
     }
+    sendResponse({ status: "ok", message: "Data sent to server" });
   }
 });
 
