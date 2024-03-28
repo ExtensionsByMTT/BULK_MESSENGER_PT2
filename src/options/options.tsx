@@ -6,19 +6,22 @@ import Request from "../pages/Request";
 
 const App = () => {
   const [isloggedIn, setIsLoggedIn] = useState(false);
+  const [pendingTasks, setPendingTasks] = useState([]);
 
   useEffect(() => {
-    const token = chrome.storage.local.get("token", (token) => {
+    chrome.storage.local.get("token", (token) => {
       if (token?.token) {
         setIsLoggedIn(true);
       }
     });
-
-    console.log("IS LOGGED IN : ", isloggedIn);
-    console.log("TOKEN : ", token);
+    chrome.storage.local.get("pendingTasks", (result) => {
+      if (result?.pendingTasks) {
+        setPendingTasks(result?.pendingTasks);
+      }
+    });
   }, [isloggedIn]);
   return (
-    <>{isloggedIn ? <Request /> : <Login setIsLoggedIn={setIsLoggedIn} />}</>
+    <>{isloggedIn ? <Request pendingTasks={pendingTasks} /> : <Login setIsLoggedIn={setIsLoggedIn} />}</>
   );
 };
 

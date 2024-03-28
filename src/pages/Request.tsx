@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const Request = () => {
+const Request = ({ pendingTasks }) => {
   const [message, setMessage] = useState("");
   const [recipients, setRecipients] = useState("100056104620093");
   const [time, setTime] = useState("1");
@@ -46,6 +46,9 @@ const Request = () => {
                   <option value="1">1min</option>
                   <option value="5">5min</option>
                   <option value="10">10min</option>
+                  <option value="15">15min</option>
+                  <option value="20">20min</option>
+                  <option value="25">25min</option>
                   <option value="30">30min</option>
                   <option value="60">1hour</option>
                   <option value="120">2hour</option>
@@ -108,6 +111,9 @@ const Request = () => {
               </form>
             </div>
           </div>
+        </div>
+        <div className="right">
+          <h5>Pending Task : </h5>
         </div>
       </div>
     </div>
