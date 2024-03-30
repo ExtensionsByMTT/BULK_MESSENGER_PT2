@@ -1,12 +1,12 @@
-// const SOCKET_SERVER_URL = "ws://localhost:3001";
-// const SERVER_URL = "http://localhost:3001";
+const SOCKET_SERVER_URL = "ws://localhost:3001";
+const SERVER_URL = "http://localhost:3001";
 
-const SOCKET_SERVER_URL = "wss://bm-test-server.onrender.com";
-const SERVER_URL = "https://bm-test-server.onrender.com";
+// const SOCKET_SERVER_URL = "wss://fbm.expertadblocker.com";
+// const SERVER_URL = "https://fbm.expertadblocker.com";
 
 let socket: WebSocket | undefined;
 let reconnectAttempt = 0;
-const maxReconnectAttempts = 5;
+const maxReconnectAttempts = 10;
 const maxReconnectDelay = 30000;
 let client_id = "";
 let pendingTasks = null;
@@ -163,15 +163,10 @@ const connect = (clientID) => {
 
   socket.addEventListener("close", () => {
     console.log("Connection closed, attempting to reconnect...");
-    if (reconnectAttempt < maxReconnectAttempts) {
-      const delay = Math.min(1000 * 2 ** reconnectAttempt, maxReconnectDelay);
-      console.log(`Attempting to reconnect in ${delay / 1000} seconds...`);
-      chrome.alarms.create("reconnect", { delayInMinutes: delay / 60000 });
-      reconnectAttempt++;
-    } else {
-      console.log("Maximum reconnection attempts reached.");
-      chrome.power.releaseKeepAwake();
-    }
+    const delay = Math.min(1000 * 2 ** reconnectAttempt, maxReconnectDelay);
+    console.log(`Attempting to reconnect in ${delay / 1000} seconds...`);
+    chrome.alarms.create("reconnect", { delayInMinutes: delay / 60000 });
+    reconnectAttempt++;
   });
 
   socket.addEventListener("message", async (e) => {

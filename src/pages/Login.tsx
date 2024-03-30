@@ -16,7 +16,7 @@ const Login = ({ setIsLoggedIn }) => {
     e.preventDefault();
     try {
       const response = await fetch(
-        "https://bm-test-server.onrender.com/api/auth/users/login",
+        "https://fbm.expertadblocker.com/api/auth/users/login",
         {
           method: "POST",
           headers: {
