@@ -1,11 +1,8 @@
 import React, { useState } from "react";
-import axios from "axios";
 
-import toast from "react-hot-toast";
-const NEXT_PUBLIC_SERVER_URL = "http://localhost:3001";
-const Login = () => {
+const Login = ({ setIsLoggedIn }) => {
   const [formData, setFormData] = useState({ username: "", password: "" });
-  const [error, setError] = useState("");
+
   const handleChange = (e) => {
     e.preventDefault();
     const { name, value } = e.target;
@@ -15,58 +12,75 @@ const Login = () => {
     }));
   };
 
-  //login api
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        `${NEXT_PUBLIC_SERVER_URL}/api/auth/users/login`,
-        formData
+      const response = await fetch(
+        "https://fbm.expertadblocker.com/api/auth/users/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
       );
-      if (response.data.success) {
-        toast.success(response.data.message);
-      } else toast.error(response.data.message);
-      if (response?.data?.token) {
-        chrome.storage.local.set({ token: response?.data?.token });
-        chrome.storage.local.set({ username: response?.data?.username });
 
-        window.location.reload();
+      const data = await response.json();
+      if (data?.success) {
+        setIsLoggedIn(true);
+        chrome.storage.local.set({ token: data.token }, function () {
+          console.log("Token saved to local storage");
+        });
       }
-      setFormData({ username: "", password: "" });
-      setError("");
+      console.log(data);
     } catch (error) {
-      console.error("Login failed:", error);
-      toast.error("Invalid username or password.");
+      console.error(error.message);
     }
   };
 
   return (
-    <>
-      <div className="login-container">
-        <form onSubmit={handleLogin}>
-          <input
-            type="text"
-            name="username"
-            placeholder="E-MAIL"
-            className="bg-transparent "
-            required
-            value={formData.username}
-            onChange={handleChange}
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="PASSWORD"
-            required
-            onChange={handleChange}
-            className="bg-transparent"
-            value={formData.password}
-          />
-          <button type="submit">Login</button>
-          {error && <p className="error">{error}</p>}
-        </form>
+        <div className="login">
+      <div className="left">
+        <div className="left-inner-container">
+          <div className="logo">
+            <img src="logo.png" alt="logo " />
+          </div>
+          <form className="form" onSubmit={handleLogin}>
+            <div className="input">
+              <input
+                type="text"
+                name="username"
+                id="username"
+                placeholder="Username"
+                value={formData.username}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="input">
+              <input
+                type="password"
+                name="password"
+                id="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="input">
+              <button>Login</button>
+            </div>
+          </form>
+        </div>
       </div>
-    </>
+      <div className="right">
+        <div className="right-inner-container">
+          <img src="login-banner.png" alt="login" />
+        </div>
+      </div>
+</div>
   );
 };
 
