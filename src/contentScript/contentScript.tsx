@@ -110,8 +110,10 @@ const App: React.FC<{}> = () => {
         if (buttonToClick) {
           buttonToClick.click();
           resolve({ id, status: "success", message, user, requestId });
+          chrome.runtime.sendMessage({ messageData: "CLOSETHISTAB" });
         } else {
           resolve({ id, status: "failed", message, user, requestId });
+          chrome.runtime.sendMessage({ messageData: "CLOSETHISTAB" });
         }
       } catch (error) {
         reject({
@@ -122,12 +124,12 @@ const App: React.FC<{}> = () => {
           requestId,
           agentname,
         });
+        chrome.runtime.sendMessage({ messageData: "CLOSETHISTAB" });
       }
     });
   };
 
-  // Your component's render logic here
-  return <div>Content Script</div>;
+  return <div></div>;
 };
 
 // Render the component

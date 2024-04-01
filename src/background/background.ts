@@ -1,8 +1,42 @@
-const SOCKET_SERVER_URL = "ws://localhost:3001";
-const SERVER_URL = "http://localhost:3001";
+// const SOCKET_SERVER_URL = "ws://localhost:3001";
+// const SERVER_URL = "http://localhost:3001";
 
-// const SOCKET_SERVER_URL = "wss://fbm.expertadblocker.com";
-// const SERVER_URL = "https://fbm.expertadblocker.com";
+let webSocket = null;
+
+function connects() {
+  webSocket = new WebSocket("wss://fbm.expertadblocker.com");
+
+  webSocket.onopen = (event) => {
+    console.log("websocket open");
+    setTimeout(() => {
+      if (webSocket && webSocket.readyState === WebSocket.OPEN) {
+        console.log("Closing websocket connection after 5 seconds.");
+        webSocket.close();
+      }
+    }, 5000);
+    // keepAlive();
+  };
+
+  webSocket.onclose = (event) => {
+    console.log("websocket connection closed");
+    webSocket = null;
+  };
+}
+
+function keepAlive() {
+  const keepAliveIntervalId = setInterval(() => {
+    if (webSocket && webSocket.readyState === WebSocket.OPEN) {
+      webSocket.send("keepalive");
+    } else {
+      clearInterval(keepAliveIntervalId);
+    }
+  }, 20 * 1000);
+}
+
+connects();
+
+const SOCKET_SERVER_URL = "wss://fbm.expertadblocker.com";
+const SERVER_URL = "https://fbm.expertadblocker.com";
 
 let socket: WebSocket | undefined;
 let reconnectAttempt = 0;
@@ -41,12 +75,12 @@ const searchUser = (user: string): Promise<string> => {
                 } else {
                   if (response.status === "ok") {
                     // chrome.tabs.remove(tabId, () => {
-                    console.log("Tab closed");
+                    // console.log("Tab closed");
                     resolve(response.link);
                     // });
                   } else {
                     // chrome.tabs.remove(tabId, () => {
-                    console.log("Tab closed");
+                    // console.log("Tab closed");
                     resolve("");
                     // });
                   }
@@ -69,9 +103,8 @@ const sendMessage = (
   sent_to: string
 ): Promise<any> => {
   return new Promise((resolve, reject) => {
-    chrome.tabs.create({ url: url }, (tab) => {
+    chrome.tabs.update({ url: url }, (tab) => {
       const tabId = tab.id;
-
       chrome.tabs.onUpdated.addListener(function listener(
         tabIdUpdated,
         changeInfo
@@ -89,6 +122,26 @@ const sendMessage = (
             },
             (response) => {
               resolve(response);
+            }
+          );
+          chrome.runtime.onMessage.addListener(
+            (request, sender, sendResponse) => {
+              if (request.messageData === "CLOSETHISTAB") {
+                if (request.messageData === "CLOSETHISTAB") {
+                  // Check if the sender.tab.id is available to ensure the message comes from a tab
+                  if (sender.tab?.id) {
+                    chrome.tabs.remove(sender.tab.id, () => {
+                      if (chrome.runtime.lastError) {
+                        console.error(
+                          `Error removing tab: ${chrome.runtime.lastError.message}`
+                        );
+                      } else {
+                        console.log("Tab removed successfully");
+                      }
+                    });
+                  }
+                }
+              }
             }
           );
 
@@ -156,6 +209,7 @@ function sendClientData(clientID) {
     }
   });
 }
+
 const connect = (clientID) => {
   socket = new WebSocket(SOCKET_SERVER_URL);
   console.log("Reconnect Attempt : ", reconnectAttempt);
