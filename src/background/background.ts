@@ -1,8 +1,8 @@
-// const SOCKET_SERVER_URL = "ws://localhost:3001";
-// const SERVER_URL = "http://localhost:3001";
-const SERVER_URL = "https://fbm.expertadblocker.com";
-const webSocket = new WebSocket("wss://fbm.expertadblocker.com");
-let reconnectInterval = 5000;
+const SERVER_URL = "http://localhost:3001";
+const webSocket = new WebSocket("ws://localhost:3001");
+// const SERVER_URL = "https://bulk-messenger-node-pt3.onrender.com";
+// const webSocket = new WebSocket("wss://bulk-messenger-node-pt3.onrender.com");
+let reconnectInterval = 1000;
 let client_id = "";
 let pendingTasks = null;
 
@@ -27,6 +27,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ status: "ok", message: "Data sent to server" });
   }
 });
+
 //
 function sendClientData(clientID) {
   chrome.storage.local.get("token", (result) => {
@@ -74,6 +75,7 @@ async function updateTask(messageId, updatedData) {
     console.error("There was a problem updating the task:", error);
   }
 }
+
 //
 const searchUser = (user: string): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -127,7 +129,7 @@ const sendMessage = (
   sent_to: string
 ): Promise<any> => {
   return new Promise((resolve, reject) => {
-    chrome.tabs.update({ url: url }, (tab) => {
+    chrome.tabs.create({ url: url }, (tab) => {
       const tabId = tab.id;
       chrome.tabs.onUpdated.addListener(function listener(
         tabIdUpdated,
@@ -148,52 +150,62 @@ const sendMessage = (
               resolve(response);
             }
           );
-          chrome.runtime.onMessage.addListener(
-            (request, sender, sendResponse) => {
-              if (request.messageData === "CLOSETHISTAB") {
-                if (request.messageData === "CLOSETHISTAB") {
-                  // Check if the sender.tab.id is available to ensure the message comes from a tab
-                  if (sender.tab?.id) {
-                    chrome.tabs.remove(sender.tab.id, () => {
-                      if (chrome.runtime.lastError) {
-                        console.error(
-                          `Error removing tab: ${chrome.runtime.lastError.message}`
-                        );
-                      } else {
-                        console.log("Tab removed successfully");
-                      }
-                    });
-                  }
-                }
-              }
-            }
-          );
-
+          // chrome.runtime.onMessage.addListener(
+          //   (request, sender, sendResponse) => {
+          //     if (request.messageData === "CLOSETHISTAB") {
+          //       if (request.messageData === "CLOSETHISTAB") {
+          //         // Check if the sender.tab.id is available to ensure the message comes from a tab
+          //         if (sender.tab?.id) {
+          //           chrome.tabs.remove(sender.tab.id, () => {
+          //             if (chrome.runtime.lastError) {
+          //               console.error(
+          //                 `Error removing tab: ${chrome.runtime.lastError.message}`
+          //               );
+          //             } else {
+          //               console.log("Tab removed successfully");
+          //             }
+          //           });
+          //         }
+          //       }
+          //     }
+          //   }
+          // );
+          updateTask;
           chrome.tabs.onUpdated.removeListener(listener);
         }
       });
     });
   });
 };
+
 //
 const message = () => {
   webSocket.onmessage = async (e) => {
     const data = JSON.parse(e.data);
-
-    if (data.action === "sendMessageToUser") console.log("TASK:", data);
-    const { id, sent_to, message } = data.task;
-    const chatURL = await searchUser(sent_to);
-    if (chatURL.length != 0) {
-      const result = await sendMessage(id, chatURL, message, sent_to);
-      await updateTask(id, result.res);
-    } else {
-      await updateTask(id, {
-        status: "failed",
-        message,
-        id,
-        user: sent_to,
-      });
+    if (data.action === "sendMessageToUser") {
+      console.log("TASK:", data);
     }
+
+    if (data.task) {
+      const { id, sent_to, message } = data.task;
+      const chatURL = await searchUser(sent_to);
+
+      if (chatURL.length != 0) {
+        const result = await sendMessage(id, chatURL, message, sent_to);
+        await updateTask(id, result.res);
+      } else {
+        await updateTask(id, {
+          status: "failed",
+          message,
+          id,
+          user: sent_to,
+        });
+      }
+    } else {
+      console.log("No task found in the data:", data);
+    }
+
+    // Handle pending tasks separately
     if (data.action === "pendingTasks") {
       console.log("Your Pending Task : ", data.payload);
       chrome.storage.local.set({ pendingTasks: data.payload }, () => {
@@ -220,7 +232,7 @@ function connects() {
         sendClientData(result.clientID);
       }
     });
-
+    message();
     keepAlive();
     clearInterval(reconnectInterval);
     /////////////////////////////////////////
@@ -234,13 +246,18 @@ function connects() {
 
   webSocket.onerror = (error) => {
     console.error("WebSocket error:", error);
+    reconnect();
   };
 }
 
 function keepAlive() {
   const keepAliveIntervalId = setInterval(() => {
     if (webSocket) {
-      webSocket.send("keepalive");
+      if (webSocket && webSocket.readyState === WebSocket.OPEN) {
+        webSocket.send(JSON.stringify({ action: "keepalive" }));
+      } else {
+        clearInterval(keepAliveIntervalId);
+      }
     } else {
       clearInterval(keepAliveIntervalId);
     }
@@ -249,15 +266,17 @@ function keepAlive() {
 
 function reconnect() {
   if (webSocket) {
-    webSocket.close();
+    if (webSocket && webSocket.readyState === WebSocket.OPEN) {
+      webSocket.close();
+    }
   }
   console.log("Attempting to reconnect");
   setTimeout(connects, reconnectInterval);
 
   const maxReconnectInterval = 30000;
-  if (reconnectInterval > maxReconnectInterval) {
-    reconnectInterval = maxReconnectInterval;
-  }
+  // if (reconnectInterval > maxReconnectInterval) {
+  //   reconnectInterval = maxReconnectInterval;
+  // }
 }
 
 connects();

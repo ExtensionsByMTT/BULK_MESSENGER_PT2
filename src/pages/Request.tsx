@@ -15,7 +15,7 @@ const Request = ({ pendingTasks }) => {
       const data = { message, ids, time, count, token: tokenValue };
       chrome.runtime.sendMessage({ type: "addTask", data: data }, (res) => {
         if (res.status === "ok") {
-          alert("Data sent to Background.js");
+          console.log("Data sent to Background.js");
         }
       });
     });

@@ -16,7 +16,7 @@ const Login = ({ setIsLoggedIn }) => {
     e.preventDefault();
     try {
       const response = await fetch(
-        "https://fbm.expertadblocker.com/api/auth/users/login",
+        "http://localhost:3001/api/auth/users/login",
         {
           method: "POST",
           headers: {
@@ -40,7 +40,7 @@ const Login = ({ setIsLoggedIn }) => {
   };
 
   return (
-        <div className="login">
+    <div className="login">
       <div className="left">
         <div className="left-inner-container">
           <div className="logo">
@@ -80,7 +80,7 @@ const Login = ({ setIsLoggedIn }) => {
           <img src="login-banner.png" alt="login" />
         </div>
       </div>
-</div>
+    </div>
   );
 };
 
