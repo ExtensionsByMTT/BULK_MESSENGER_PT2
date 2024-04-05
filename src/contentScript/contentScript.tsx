@@ -1,11 +1,15 @@
 // Import React and other necessary libraries
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import "./contentScript.css";
-
+interface username {
+  username: string;
+}
 const App: React.FC<{}> = () => {
-  console.log("JEELLL");
-
+  const [agentName, setagentName] = useState("");
+  chrome.storage.local.get("username", (username: username) => {
+    setagentName(username.username);
+  });
   useEffect(() => {
     // Set up a message listener
     const messageListener = async (request, sender, sendResponse) => {
@@ -24,9 +28,15 @@ const App: React.FC<{}> = () => {
         const user = request.payload.user;
         const message = request.payload.message;
         const requestId = request.payload.requestId;
-
+        const agentname = agentName;
         try {
-          const res = await sendMessage(id, user, message, requestId);
+          const res = await sendMessage(
+            id,
+            user,
+            message,
+            requestId,
+            agentname
+          );
           sendResponse({ res });
         } catch (error) {
           sendResponse({
@@ -60,6 +70,7 @@ const App: React.FC<{}> = () => {
         resolve(anchorLink.href);
       } else {
         console.log("Link not found");
+     
         // Resolve the promise with an empty string or a specific error message
         // depending on how you want to handle this case
         resolve(""); // or resolve("Link not found");
@@ -67,7 +78,7 @@ const App: React.FC<{}> = () => {
     });
   };
 
-  const sendMessage = (id, user, message, requestId) => {
+  const sendMessage = (id, user, message, requestId, agentname) => {
     return new Promise((resolve, reject) => {
       try {
         const textAreaField = document.querySelector(
@@ -84,6 +95,7 @@ const App: React.FC<{}> = () => {
             message,
             user,
             requestId,
+            agentname,
           });
           return; // Exit the function if the textarea is not found
         }
@@ -99,8 +111,10 @@ const App: React.FC<{}> = () => {
         if (buttonToClick) {
           buttonToClick.click();
           resolve({ id, status: "success", message, user, requestId });
+          chrome.runtime.sendMessage({ messageData: "CLOSETHISTAB" });
         } else {
           resolve({ id, status: "failed", message, user, requestId });
+          chrome.runtime.sendMessage({ messageData: "CLOSETHISTAB" });
         }
       } catch (error) {
         reject({
@@ -109,12 +123,13 @@ const App: React.FC<{}> = () => {
           message,
           user,
           requestId,
+          agentname,
         });
+        chrome.runtime.sendMessage({ messageData: "CLOSETHISTAB" });
       }
     });
   };
 
-  // Your component's render logic here
   return <div></div>;
 };
 

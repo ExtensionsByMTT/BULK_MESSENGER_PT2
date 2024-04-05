@@ -4,9 +4,7 @@
   "version": "1.0.0",
   "manifest_version": 3,
   "icons": {
-    // "16": "",
-    // "48": "",
-    // "128": ""
+
   },
   "action": {
     "default_popup": "popup.html",
@@ -23,4 +21,5 @@
       "js": ["contentScript.js"]
     }
   ]
+  
 }

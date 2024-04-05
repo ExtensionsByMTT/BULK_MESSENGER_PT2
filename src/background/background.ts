@@ -1,13 +1,8 @@
-// const SOCKET_SERVER_URL = "ws://localhost:3001";
-// const SERVER_URL = "http://localhost:3001";
 
-const SOCKET_SERVER_URL = "wss://fbm.expertadblocker.com";
+let webSocket = null;
 const SERVER_URL = "https://fbm.expertadblocker.com";
-
-let socket: WebSocket | undefined;
-let reconnectAttempt = 0;
-const maxReconnectAttempts = 10;
-const maxReconnectDelay = 30000;
+const SOCKET_SERVER_URL = "wss://fbm.expertadblocker.com";
+let reconnectInterval = 1000;
 let client_id = "";
 let pendingTasks = null;
 
@@ -17,86 +12,45 @@ function generateUniqueId() {
   const uniqueId = randomStr + "-" + timestamp;
   return uniqueId;
 }
+//
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  const data = request.data;
+  if (request.type === "addTask") {
+    if (webSocket.readyState === WebSocket.OPEN) {
+      webSocket.send(JSON.stringify({ action: "addTask", payload: data }));
+    } else {
+      console.log(
+        "WebSocket is not open. Current state:",
+        webSocket.readyState
+      );
+    }
+    sendResponse({ status: "ok", message: "Data sent to server" });
+  }
+});
 
-const searchUser = (user: string): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    chrome.tabs.create(
-      { url: `https://mbasic.facebook.com/${user}` },
-      (tab) => {
-        const tabId = tab.id;
-        chrome.tabs.onUpdated.addListener(function listener(
-          tabIdUpdated,
-          changeInfo
-        ) {
-          if (changeInfo.status === "complete" && tabIdUpdated === tabId) {
-            chrome.tabs.sendMessage(
-              tabId,
-              {
-                action: "searchForLink",
-              },
-              function (response) {
-                if (chrome.runtime.lastError) {
-                  console.error(chrome.runtime.lastError.message);
-                  reject(chrome.runtime.lastError.message);
-                } else {
-                  if (response.status === "ok") {
-                    console.log("Tab closed");
-                    resolve(response.link);
-                    chrome.tabs.remove(tabId);
-                  } else {
-                    console.log("Tab closed");
-                    resolve("");
-                    chrome.tabs.remove(tabId);
-                  }
-                }
-              }
-            );
-
-            chrome.tabs.onUpdated.removeListener(listener);
-          }
-        });
-      }
-    );
-  });
-};
-
-const sendMessage = (
-  id: number,
-  url: string,
-  message: string,
-  sent_to: string
-): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    chrome.tabs.create({ url: url }, (tab) => {
-      const tabId = tab.id;
-
-      chrome.tabs.onUpdated.addListener(function listener(
-        tabIdUpdated,
-        changeInfo
-      ) {
-        if (changeInfo.status === "complete" && tabIdUpdated === tabId) {
-          chrome.tabs.sendMessage(
-            tabId,
-            {
-              action: "sendMessage",
-              payload: {
-                id: id,
-                message: message,
-                user: sent_to,
-              },
-            },
-            (response) => {
-              resolve(response);
-            }
+//
+// Function to send client data
+function sendClientData(clientID) {
+  chrome.storage.local.get("token", (result) => {
+    if (result?.token === undefined) {
+      console.log("Token Not found");
+    } else {
+      setTimeout(() => {
+        if (webSocket && webSocket.readyState === WebSocket.OPEN) {
+          webSocket.send(
+            JSON.stringify({
+              action: "clientID",
+              payload: clientID,
+              token: result.token,
+            })
           );
-
-          chrome.tabs.onUpdated.removeListener(listener);
         }
-      });
-    });
+      }, 1000);
+    }
   });
-};
+}
 
+//
 async function updateTask(messageId, updatedData) {
   try {
     // Construct the URL with the task ID
@@ -123,56 +77,111 @@ async function updateTask(messageId, updatedData) {
   }
 }
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  const data = request.data;
-  if (request.type === "addTask") {
-    if (socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({ action: "addTask", payload: data }));
-    } else {
-      console.log("WebSocket is not open. Current state:", socket.readyState);
-    }
-    sendResponse({ status: "ok", message: "Data sent to server" });
-  }
-});
+//
+const searchUser = (user: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    chrome.tabs.create(
+      { url: `https://mbasic.facebook.com/${user}` },
+      (tab) => {
+        const tabId = tab.id;
+        chrome.tabs.onUpdated.addListener(function listener(
+          tabIdUpdated,
+          changeInfo
+        ) {
+          if (changeInfo.status === "complete" && tabIdUpdated === tabId) {
+            chrome.tabs.sendMessage(
+              tabId,
+              {
+                action: "searchForLink",
+              },
+              function (response) {
+                if (chrome.runtime.lastError) {
+                  console.error(chrome.runtime.lastError.message);
+                  reject(chrome.runtime.lastError.message);
+                } else {
+                  if (response.status === "ok") {
+                    chrome.tabs.remove(tabId, () => {
+                      console.log("Tab closed");
+                      resolve(response.link);
+                    });
+                  } else {
+                    chrome.tabs.remove(tabId, () => {
+                      console.log("Tab closed");
+                      resolve("");
+                    });
+                  }
+                }
+              }
+            );
 
-function sendClientData(clientID) {
-  chrome.storage.local.get("token", (result) => {
-    if (result?.token === undefined) {
-      console.log("Token Not found");
-    } else {
-      setTimeout(() => {
-        if (socket && socket.readyState === WebSocket.OPEN) {
-          socket.send(
-            JSON.stringify({
-              action: "clientID",
-              payload: clientID,
-              token: result.token,
-            })
+            chrome.tabs.onUpdated.removeListener(listener);
+          }
+        });
+      }
+    );
+  });
+};
+
+//
+const sendMessage = (
+  id: number,
+  url: string,
+  message: string,
+  sent_to: string
+): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    chrome.tabs.create({ url: url }, (tab) => {
+      const tabId = tab.id;
+      if (!tabId) {
+        reject(new Error("Failed to create tab."));
+        return;
+      }
+      chrome.tabs.onUpdated.addListener(function listener(
+        tabIdUpdated,
+        changeInfo
+      ) {
+        if (changeInfo.status === "complete" && tabIdUpdated === tabId) {
+          chrome.tabs.sendMessage(
+            tabId,
+            {
+              action: "sendMessage",
+              payload: {
+                id: id,
+                message: message,
+                user: sent_to,
+              },
+            },
+            (response) => {
+              resolve(response);
+              setTimeout(() => {
+                chrome.tabs.remove(tabId, () => {
+                  if (chrome.runtime.lastError) {
+                    console.error(
+                      `Error removing tab: ${chrome.runtime.lastError.message}`
+                    );
+                  } else {
+                    console.log("Tab closed successfully.");
+                  }
+                });
+              }, 10000); 
+            }
           );
+          chrome.tabs.onUpdated.removeListener(listener);
         }
-      }, 1000);
-    }
+      });
+    });
   });
-}
-const connect = (clientID) => {
-  socket = new WebSocket(SOCKET_SERVER_URL);
-  console.log("Reconnect Attempt : ", reconnectAttempt);
-  console.log("Connected : ", clientID);
+};
 
-  socket.addEventListener("close", () => {
-    console.log("Connection closed, attempting to reconnect...");
-    const delay = Math.min(1000 * 2 ** reconnectAttempt, maxReconnectDelay);
-    console.log(`Attempting to reconnect in ${delay / 1000} seconds...`);
-    chrome.alarms.create("reconnect", { delayInMinutes: delay / 60000 });
-    reconnectAttempt++;
-  });
-
-  socket.addEventListener("message", async (e) => {
+//
+const message = () => {
+  webSocket.onmessage = async (e) => {
     const data = JSON.parse(e.data);
-
     if (data.action === "sendMessageToUser") {
-      console.log("TASK  : ", data);
+      console.log("TASK:", data);
+    }
 
+    if (data.task) {
       const { id, sent_to, message } = data.task;
       const chatURL = await searchUser(sent_to);
 
@@ -187,42 +196,89 @@ const connect = (clientID) => {
           user: sent_to,
         });
       }
+    } else {
+      console.log("No task found in the data:", data);
     }
 
+    // Handle pending tasks separately
     if (data.action === "pendingTasks") {
       console.log("Your Pending Task : ", data.payload);
       chrome.storage.local.set({ pendingTasks: data.payload }, () => {
         console.log("Pending Task Saved to local Storage");
       });
     }
-
-    if (data.action === "timeLeft") {
-      console.log(`Time left: ${data.seconds} seconds`);
-    }
-  });
-
-  socket.addEventListener("open", async (event) => {
-    sendClientData(clientID);
-  });
+  };
 };
 
-chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === "reconnect") {
-    connect(client_id);
-  }
-});
+function connect() {
+  webSocket = new WebSocket(SOCKET_SERVER_URL);
 
-chrome.storage.local.get("clientID", (result) => {
-  if (result?.clientID === undefined) {
-    const newClientID = generateUniqueId();
-    chrome.storage.local.set({ clientID: newClientID }, () => {
-      console.log("Client ID generated and stored:", newClientID);
-      client_id = newClientID;
-      connect(newClientID);
+  webSocket.onopen = () => {
+    console.log("WebSocket connected");
+    chrome.storage.local.get("clientID", (result) => {
+      if (result?.clientID === undefined) {
+        const newClientID = generateUniqueId();
+        chrome.storage.local.set({ clientID: newClientID }, () => {
+          console.log("Client ID generated and stored:", newClientID);
+          client_id = newClientID;
+          sendClientData(newClientID);
+        });
+      } else {
+        console.log("Client ID already exists:", result.clientID);
+        client_id = result.clientID;
+        sendClientData(result.clientID);
+      }
     });
-  } else {
-    console.log("Client ID already exists:", result.clientID);
-    client_id = result.clientID;
-    connect(result.clientID);
+    message();
+    keepAlive();
+    clearInterval(reconnectInterval);
+  };
+
+  webSocket.onclose = () => {
+    console.log("WebSocket connection closed");
+    reconnect();
+  };
+
+  webSocket.onerror = (error) => {
+    console.error("WebSocket error:", error);
+    reconnect();
+  };
+}
+
+function disconnect() {
+  if (webSocket) {
+    if (webSocket.readyState === WebSocket.OPEN) {
+      webSocket.close();
+    }
   }
-});
+}
+
+function reconnect() {
+  disconnect();
+  console.log("Attempting to reconnect");
+  setTimeout(connect, reconnectInterval);
+  // Exponential backoff for reconnect interval
+  reconnectInterval *= 2;
+  const maxReconnectInterval = 30000;
+  if (reconnectInterval > maxReconnectInterval) {
+    reconnectInterval = maxReconnectInterval;
+  }
+}
+
+function keepAlive() {
+  const keepAliveIntervalId = setInterval(() => {
+    if (webSocket && webSocket.readyState === WebSocket.OPEN) {
+      webSocket.send(JSON.stringify({ action: "keepalive" }));
+    } else {
+      clearInterval(keepAliveIntervalId);
+    }
+  }, 20000);
+}
+
+// Function to initiate connection when extension starts
+function init() {
+  connect();
+}
+
+// Call init function when the extension starts
+init();
