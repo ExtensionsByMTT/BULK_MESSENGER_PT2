@@ -1,4 +1,3 @@
-
 let webSocket = null;
 const SERVER_URL = "https://fbm.expertadblocker.com";
 const SOCKET_SERVER_URL = "wss://fbm.expertadblocker.com";
@@ -163,7 +162,7 @@ const sendMessage = (
                     console.log("Tab closed successfully.");
                   }
                 });
-              }, 10000); 
+              }, 10000);
             }
           );
           chrome.tabs.onUpdated.removeListener(listener);

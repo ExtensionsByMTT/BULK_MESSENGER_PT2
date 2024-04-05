@@ -3,8 +3,6 @@ import Request from "../components/Request";
 import AgentsTable from "../components/AgentsTable";
 import History from "../components/History";
 
-const links = ["New Message", "History"];
-
 const Dashboard = ({ token, userType }) => {
   const [activeLink, setActiveLink] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
@@ -15,9 +13,6 @@ const Dashboard = ({ token, userType }) => {
   };
 
   useEffect(() => {
-    if (userType === "admin") {
-      setLinks([...links, "Agent"]);
-    }
     (async () => {
       const usernameResult = await new Promise<string>((resolve) => {
         chrome.storage.local.get("username", (result) => {
@@ -110,13 +105,6 @@ const Dashboard = ({ token, userType }) => {
           {activeLink === 0 && <Request />}
           {activeLink === 1 && (
             <History
-              token={token}
-              userType={userType}
-              currentUser={currentUser}
-            />
-          )}
-          {activeLink === 2 && userType === "admin" && (
-            <AgentsTable
               token={token}
               userType={userType}
               currentUser={currentUser}
