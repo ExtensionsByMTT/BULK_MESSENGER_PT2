@@ -115,7 +115,7 @@ const App: React.FC<{}> = () => {
   };
 
   // Your component's render logic here
-  return <div>Content Script</div>;
+  return <div></div>;
 };
 
 // Render the component

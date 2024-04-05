@@ -2,32 +2,55 @@ import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import "./options.css";
 import Login from "../pages/Login";
-import Request from "../pages/Request";
+import Dashboard from "../pages/Dashboard";
 
 const App = () => {
   const [isloggedIn, setIsLoggedIn] = useState(false);
-  const [pendingTasks, setPendingTasks] = useState([]);
+  const [token, setToken] = useState("");
+  const [userType, setUserType] = useState("agent");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    chrome.storage.local.get("token", (token) => {
-      if (token?.token) {
-        setIsLoggedIn(true);
-      }
-    });
-    chrome.storage.local.get("pendingTasks", (result) => {
-      if (result?.pendingTasks) {
-        setPendingTasks(result?.pendingTasks);
-      }
-    });
-  }, [isloggedIn]);
+    const loadData = async () => {
+      const roleResult = await new Promise<string>((resolve, reject) => {
+        chrome.storage.local.get("role", (result) => {
+          resolve(result.role || "");
+        });
+      });
+
+      const tokenResult = await new Promise<string>((resolve, reject) => {
+        chrome.storage.local.get("token", (result) => {
+          resolve(result.token || "");
+        });
+      });
+
+      setToken(tokenResult);
+      setUserType(roleResult);
+      setIsLoggedIn(!!tokenResult);
+      setLoading(false);
+    };
+
+    loadData();
+  }, []);
+
+  if (loading) {
+    return <div>Loading.....</div>;
+  }
+
   return (
-    <>{isloggedIn ? <Request pendingTasks={pendingTasks} /> : <Login setIsLoggedIn={setIsLoggedIn} />}</>
+    <>
+      {isloggedIn ? (
+        <Dashboard token={token} userType={userType} />
+      ) : (
+        <Login setIsLoggedIn={setIsLoggedIn} />
+      )}
+    </>
   );
 };
 
 export default App;
 
 const root = document.createElement("div");
-root.id = "dashboard";
+root.id = "bulkMessenger";
 document.body.appendChild(root);
 ReactDOM.render(<App />, root);

@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+// const SERVER_URL = "http://localhost:3001";
+const SERVER_URL = "https://fbm.expertadblocker.com";
 
 const Login = ({ setIsLoggedIn }) => {
   const [formData, setFormData] = useState({ username: "", password: "" });
@@ -15,23 +17,28 @@ const Login = ({ setIsLoggedIn }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(
-        "https://fbm.expertadblocker.com/api/auth/users/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        }
-      );
+      const response = await fetch(`${SERVER_URL}/api/auth/users/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
 
       const data = await response.json();
+
       if (data?.success) {
-        setIsLoggedIn(true);
-        chrome.storage.local.set({ token: data.token }, function () {
-          console.log("Token saved to local storage");
+        const addDataResult = await new Promise<string>((resolve, reject) => {
+          chrome.storage.local.set(
+            { token: data.token, role: data.role, username: formData.username },
+            () => {
+              resolve("Token saved to local storage");
+            }
+          );
         });
+        console.log(addDataResult);
+        setIsLoggedIn(true);
+        window.location.reload();
       }
       console.log(data);
     } catch (error) {

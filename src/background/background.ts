@@ -1,8 +1,8 @@
-const SOCKET_SERVER_URL = "ws://localhost:3001";
-const SERVER_URL = "http://localhost:3001";
+// const SOCKET_SERVER_URL = "ws://localhost:3001";
+// const SERVER_URL = "http://localhost:3001";
 
-// const SOCKET_SERVER_URL = "wss://fbm.expertadblocker.com";
-// const SERVER_URL = "https://fbm.expertadblocker.com";
+const SOCKET_SERVER_URL = "wss://fbm.expertadblocker.com";
+const SERVER_URL = "https://fbm.expertadblocker.com";
 
 let socket: WebSocket | undefined;
 let reconnectAttempt = 0;
@@ -40,15 +40,13 @@ const searchUser = (user: string): Promise<string> => {
                   reject(chrome.runtime.lastError.message);
                 } else {
                   if (response.status === "ok") {
-                    // chrome.tabs.remove(tabId, () => {
                     console.log("Tab closed");
                     resolve(response.link);
-                    // });
+                    chrome.tabs.remove(tabId);
                   } else {
-                    // chrome.tabs.remove(tabId, () => {
                     console.log("Tab closed");
                     resolve("");
-                    // });
+                    chrome.tabs.remove(tabId);
                   }
                 }
               }
