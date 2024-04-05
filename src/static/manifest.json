@@ -12,6 +12,7 @@
   },
   "permissions": ["power", "alarms", "storage"],
   "options_page": "options.html",
+  
   "background": {
     "service_worker": "background.js"
   },

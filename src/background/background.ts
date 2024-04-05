@@ -1,4 +1,3 @@
-
 let webSocket = null;
 const SERVER_URL = "https://fbm.expertadblocker.com";
 const SOCKET_SERVER_URL = "wss://fbm.expertadblocker.com";
@@ -34,6 +33,7 @@ function sendClientData(clientID) {
   chrome.storage.local.get("token", (result) => {
     if (result?.token === undefined) {
       console.log("Token Not found");
+      chrome.runtime.reload();
     } else {
       setTimeout(() => {
         if (webSocket && webSocket.readyState === WebSocket.OPEN) {
@@ -163,7 +163,7 @@ const sendMessage = (
                     console.log("Tab closed successfully.");
                   }
                 });
-              }, 10000); 
+              }, 10000);
             }
           );
           chrome.tabs.onUpdated.removeListener(listener);
@@ -212,7 +212,6 @@ const message = () => {
 
 function connect() {
   webSocket = new WebSocket(SOCKET_SERVER_URL);
-
   webSocket.onopen = () => {
     console.log("WebSocket connected");
     chrome.storage.local.get("clientID", (result) => {
@@ -234,14 +233,21 @@ function connect() {
     clearInterval(reconnectInterval);
   };
 
-  webSocket.onclose = () => {
-    console.log("WebSocket connection closed");
-    reconnect();
+  webSocket.onclose = (event) => {
+    if (event.code !== 1006) {
+      if (webSocket && webSocket.readyState === WebSocket.CLOSED)
+        console.log("WebSocket connection closed trying to reconnect");
+      reconnect();
+    }
   };
-
   webSocket.onerror = (error) => {
-    console.error("WebSocket error:", error);
-    reconnect();
+    if (error) {
+      console.log(`WebSocket Internal error`);
+      webSocket.close();
+      chrome.runtime.sendMessage({
+        Error: "Internal error please try after some time",
+      });
+    }
   };
 }
 
@@ -257,12 +263,11 @@ function reconnect() {
   disconnect();
   console.log("Attempting to reconnect");
   setTimeout(connect, reconnectInterval);
-  // Exponential backoff for reconnect interval
   reconnectInterval *= 2;
-  const maxReconnectInterval = 30000;
-  if (reconnectInterval > maxReconnectInterval) {
-    reconnectInterval = maxReconnectInterval;
-  }
+  // const maxReconnectInterval = 30000;
+  // if (reconnectInterval > maxReconnectInterval) {
+  //   reconnectInterval = maxReconnectInterval;
+  // }
 }
 
 function keepAlive() {
@@ -279,6 +284,18 @@ function keepAlive() {
 function init() {
   connect();
 }
+chrome.runtime.onInstalled.addListener(function () {
+  chrome.tabs.create({ url: chrome.runtime.getURL("options.html") });
+});
+// Open options page on background script startup
+chrome.runtime.onStartup.addListener(function () {
+  chrome.tabs.create({ url: chrome.runtime.getURL("options.html") });
+});
 
-// Call init function when the extension starts
-init();
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.action === "StartTheSocket") {
+    init();
+  } else if (message.action === "reloadBackground") {
+    chrome.runtime.reload();
+  }
+});

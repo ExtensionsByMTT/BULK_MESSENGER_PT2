@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 const Request = () => {
   const [message, setMessage] = useState("");
-  const [recipients, setRecipients] = useState("100056104620093");
+  const [recipients, setRecipients] = useState("");
   const [time, setTime] = useState("1");
   const [count, setCount] = useState("2");
 
@@ -23,6 +23,13 @@ const Request = () => {
   return (
     <div className="request">
       <div className="request-container">
+        <button
+          onClick={() => {
+            chrome.runtime.sendMessage({ action: "reloadBackground" });
+          }}
+        >
+          Reload
+        </button>
         <form>
           <div className="input">
             <label htmlFor="message">Message</label>
