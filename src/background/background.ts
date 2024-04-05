@@ -1,7 +1,7 @@
-const SERVER_URL = "http://localhost:3001";
-const webSocket = new WebSocket("ws://localhost:3001");
-// const SERVER_URL = "https://bulk-messenger-node-pt3.onrender.com";
-// const webSocket = new WebSocket("wss://bulk-messenger-node-pt3.onrender.com");
+
+let webSocket = null;
+const SERVER_URL = "https://fbm.expertadblocker.com";
+const SOCKET_SERVER_URL = "wss://fbm.expertadblocker.com";
 let reconnectInterval = 1000;
 let client_id = "";
 let pendingTasks = null;
@@ -29,6 +29,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 //
+// Function to send client data
 function sendClientData(clientID) {
   chrome.storage.local.get("token", (result) => {
     if (result?.token === undefined) {
@@ -99,15 +100,15 @@ const searchUser = (user: string): Promise<string> => {
                   reject(chrome.runtime.lastError.message);
                 } else {
                   if (response.status === "ok") {
-                    // chrome.tabs.remove(tabId, () => {
-                    // console.log("Tab closed");
-                    resolve(response.link);
-                    // });
+                    chrome.tabs.remove(tabId, () => {
+                      console.log("Tab closed");
+                      resolve(response.link);
+                    });
                   } else {
-                    // chrome.tabs.remove(tabId, () => {
-                    // console.log("Tab closed");
-                    resolve("");
-                    // });
+                    chrome.tabs.remove(tabId, () => {
+                      console.log("Tab closed");
+                      resolve("");
+                    });
                   }
                 }
               }
@@ -131,6 +132,10 @@ const sendMessage = (
   return new Promise((resolve, reject) => {
     chrome.tabs.create({ url: url }, (tab) => {
       const tabId = tab.id;
+      if (!tabId) {
+        reject(new Error("Failed to create tab."));
+        return;
+      }
       chrome.tabs.onUpdated.addListener(function listener(
         tabIdUpdated,
         changeInfo
@@ -148,29 +153,19 @@ const sendMessage = (
             },
             (response) => {
               resolve(response);
+              setTimeout(() => {
+                chrome.tabs.remove(tabId, () => {
+                  if (chrome.runtime.lastError) {
+                    console.error(
+                      `Error removing tab: ${chrome.runtime.lastError.message}`
+                    );
+                  } else {
+                    console.log("Tab closed successfully.");
+                  }
+                });
+              }, 10000); 
             }
           );
-          // chrome.runtime.onMessage.addListener(
-          //   (request, sender, sendResponse) => {
-          //     if (request.messageData === "CLOSETHISTAB") {
-          //       if (request.messageData === "CLOSETHISTAB") {
-          //         // Check if the sender.tab.id is available to ensure the message comes from a tab
-          //         if (sender.tab?.id) {
-          //           chrome.tabs.remove(sender.tab.id, () => {
-          //             if (chrome.runtime.lastError) {
-          //               console.error(
-          //                 `Error removing tab: ${chrome.runtime.lastError.message}`
-          //               );
-          //             } else {
-          //               console.log("Tab removed successfully");
-          //             }
-          //           });
-          //         }
-          //       }
-          //     }
-          //   }
-          // );
-          updateTask;
           chrome.tabs.onUpdated.removeListener(listener);
         }
       });
@@ -215,7 +210,9 @@ const message = () => {
   };
 };
 
-function connects() {
+function connect() {
+  webSocket = new WebSocket(SOCKET_SERVER_URL);
+
   webSocket.onopen = () => {
     console.log("WebSocket connected");
     chrome.storage.local.get("clientID", (result) => {
@@ -224,7 +221,7 @@ function connects() {
         chrome.storage.local.set({ clientID: newClientID }, () => {
           console.log("Client ID generated and stored:", newClientID);
           client_id = newClientID;
-          sendClientData(result.clientID);
+          sendClientData(newClientID);
         });
       } else {
         console.log("Client ID already exists:", result.clientID);
@@ -235,10 +232,8 @@ function connects() {
     message();
     keepAlive();
     clearInterval(reconnectInterval);
-    /////////////////////////////////////////
   };
 
-  //when webSocket get disconnect by any reason
   webSocket.onclose = () => {
     console.log("WebSocket connection closed");
     reconnect();
@@ -250,33 +245,40 @@ function connects() {
   };
 }
 
+function disconnect() {
+  if (webSocket) {
+    if (webSocket.readyState === WebSocket.OPEN) {
+      webSocket.close();
+    }
+  }
+}
+
+function reconnect() {
+  disconnect();
+  console.log("Attempting to reconnect");
+  setTimeout(connect, reconnectInterval);
+  // Exponential backoff for reconnect interval
+  reconnectInterval *= 2;
+  const maxReconnectInterval = 30000;
+  if (reconnectInterval > maxReconnectInterval) {
+    reconnectInterval = maxReconnectInterval;
+  }
+}
+
 function keepAlive() {
   const keepAliveIntervalId = setInterval(() => {
-    if (webSocket) {
-      if (webSocket && webSocket.readyState === WebSocket.OPEN) {
-        webSocket.send(JSON.stringify({ action: "keepalive" }));
-      } else {
-        clearInterval(keepAliveIntervalId);
-      }
+    if (webSocket && webSocket.readyState === WebSocket.OPEN) {
+      webSocket.send(JSON.stringify({ action: "keepalive" }));
     } else {
       clearInterval(keepAliveIntervalId);
     }
   }, 20000);
 }
 
-function reconnect() {
-  if (webSocket) {
-    if (webSocket && webSocket.readyState === WebSocket.OPEN) {
-      webSocket.close();
-    }
-  }
-  console.log("Attempting to reconnect");
-  setTimeout(connects, reconnectInterval);
-
-  const maxReconnectInterval = 30000;
-  // if (reconnectInterval > maxReconnectInterval) {
-  //   reconnectInterval = maxReconnectInterval;
-  // }
+// Function to initiate connection when extension starts
+function init() {
+  connect();
 }
 
-connects();
+// Call init function when the extension starts
+init();

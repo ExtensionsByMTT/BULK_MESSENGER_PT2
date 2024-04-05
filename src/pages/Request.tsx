@@ -51,6 +51,7 @@ const Request = ({ pendingTasks }) => {
                   <option value="25">25min</option>
                   <option value="30">30min</option>
                   <option value="60">1hour</option>
+                  <option value="90">1.5hour</option>
                   <option value="120">2hour</option>
                   <option value="180">3hour</option>
                 </select>

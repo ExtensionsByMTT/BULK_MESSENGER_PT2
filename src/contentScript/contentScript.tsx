@@ -70,6 +70,7 @@ const App: React.FC<{}> = () => {
         resolve(anchorLink.href);
       } else {
         console.log("Link not found");
+     
         // Resolve the promise with an empty string or a specific error message
         // depending on how you want to handle this case
         resolve(""); // or resolve("Link not found");

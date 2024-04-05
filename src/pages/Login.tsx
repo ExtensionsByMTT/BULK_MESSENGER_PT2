@@ -16,7 +16,7 @@ const Login = ({ setIsLoggedIn }) => {
     e.preventDefault();
     try {
       const response = await fetch(
-        "http://localhost:3001/api/auth/users/login",
+        "https://fbm.expertadblocker.com/api/auth/users/login",
         {
           method: "POST",
           headers: {
