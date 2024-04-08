@@ -77,7 +77,11 @@ const Login = ({ setIsLoggedIn }) => {
               />
             </div>
             <div className="input">
-              <button>Login</button>
+              <button
+               
+              >
+                Login
+              </button>
             </div>
           </form>
         </div>

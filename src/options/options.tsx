@@ -21,6 +21,9 @@ const App = () => {
       const tokenResult = await new Promise<string>((resolve, reject) => {
         chrome.storage.local.get("token", (result) => {
           resolve(result.token || "");
+          if (result?.token) {
+            chrome.runtime.sendMessage({ action: "StartTheSocket" });
+          }
         });
       });
 
@@ -36,6 +39,12 @@ const App = () => {
   if (loading) {
     return <div>Loading.....</div>;
   }
+
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message.Error) {
+      alert(message.Error);
+    }
+  });
 
   return (
     <>
