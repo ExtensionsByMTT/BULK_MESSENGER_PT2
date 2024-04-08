@@ -143,7 +143,10 @@
         justify-content: space-between;
         /* border-top: 1px solid #8c8c8c; */
         padding: 8px;
-
+        .reload{
+          display: flex;
+          gap: 2vw;
+        }
         .detail {
           color: #fff;
 
@@ -164,6 +167,7 @@
             font-size: 12px;
             text-transform: lowercase;
           }
+        
         }
 
         button {

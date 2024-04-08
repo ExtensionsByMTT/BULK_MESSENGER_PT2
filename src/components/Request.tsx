@@ -23,13 +23,6 @@ const Request = () => {
   return (
     <div className="request">
       <div className="request-container">
-        <button
-          onClick={() => {
-            chrome.runtime.sendMessage({ action: "reloadBackground" });
-          }}
-        >
-          Reload
-        </button>
         <form>
           <div className="input">
             <label htmlFor="message">Message</label>
