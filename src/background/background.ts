@@ -199,7 +199,6 @@ const message = () => {
     } else {
       console.log("No task found in the data:", data);
     }
-
     // Handle pending tasks separately
     if (data.action === "pendingTasks") {
       console.log("Your Pending Task : ", data.payload);
@@ -298,4 +297,8 @@ chrome.runtime.onMessage.addListener((message) => {
   } else if (message.action === "reloadBackground") {
     chrome.runtime.reload();
   }
+});
+
+chrome.action.onClicked.addListener(() => {
+  chrome.runtime.openOptionsPage();
 });
