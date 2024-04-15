@@ -70,7 +70,7 @@ const App: React.FC<{}> = () => {
         resolve(anchorLink.href);
       } else {
         console.log("Link not found");
-     
+
         // Resolve the promise with an empty string or a specific error message
         // depending on how you want to handle this case
         resolve(""); // or resolve("Link not found");
@@ -78,8 +78,21 @@ const App: React.FC<{}> = () => {
     });
   };
 
+  // const verifySentMessage = async (message) => {
+  //   const container = document.getElementById("fua");
+  //   const spanElements = container.querySelectorAll("span");
+  //   const spanWithMessage = Array.from(spanElements).find(
+  //     (span) => span.textContent.trim() === message
+  //   );
+
+  //   if (spanWithMessage && spanWithMessage.textContent == message) {
+  //     return true;
+  //   }
+  //   return false;
+  // };
+
   const sendMessage = (id, user, message, requestId, agentname) => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       try {
         const textAreaField = document.querySelector(
           'textarea[name="body"]'
@@ -110,6 +123,7 @@ const App: React.FC<{}> = () => {
 
         if (buttonToClick) {
           buttonToClick.click();
+
           resolve({ id, status: "success", message, user, requestId });
           chrome.runtime.sendMessage({ messageData: "CLOSETHISTAB" });
         } else {

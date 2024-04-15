@@ -42,7 +42,7 @@ const App = () => {
 
   chrome.runtime.onMessage.addListener((message) => {
     if (message.Error) {
-      alert(message.Error);
+      console.log(message.Error);
     }
   });
 

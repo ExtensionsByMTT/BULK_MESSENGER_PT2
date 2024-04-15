@@ -41,6 +41,7 @@ const Login = ({ setIsLoggedIn }) => {
         window.location.reload();
       }
       console.log(data);
+      alert(data?.message);
     } catch (error) {
       console.error(error.message);
     }
@@ -77,11 +78,7 @@ const Login = ({ setIsLoggedIn }) => {
               />
             </div>
             <div className="input">
-              <button
-               
-              >
-                Login
-              </button>
+              <button>Login</button>
             </div>
           </form>
         </div>
