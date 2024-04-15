@@ -1,6 +1,8 @@
 let webSocket = null;
 const SERVER_URL = "https://fbm.expertadblocker.com";
 const SOCKET_SERVER_URL = "wss://fbm.expertadblocker.com";
+// const SERVER_URL = "http://localhost:3001";
+// const SOCKET_SERVER_URL = "ws://localhost:3001";
 let reconnectInterval = 1000;
 let client_id = "";
 let pendingTasks = null;
@@ -78,7 +80,7 @@ async function updateTask(messageId, updatedData) {
 }
 
 //
-const searchUser = (user: string): Promise<string> => {
+const searchUser = (user: string): Promise<{ link: string; tabId: any }> => {
   return new Promise((resolve, reject) => {
     chrome.tabs.create(
       { url: `https://mbasic.facebook.com/${user}` },
@@ -100,15 +102,15 @@ const searchUser = (user: string): Promise<string> => {
                   reject(chrome.runtime.lastError.message);
                 } else {
                   if (response.status === "ok") {
-                    chrome.tabs.remove(tabId, () => {
-                      console.log("Tab closed");
-                      resolve(response.link);
-                    });
+                    // chrome.tabs.remove(tabId, () => {
+                    console.log("Tab closed");
+                    resolve({ link: response.link, tabId: tabId });
+                    // });
                   } else {
-                    chrome.tabs.remove(tabId, () => {
-                      console.log("Tab closed");
-                      resolve("");
-                    });
+                    // chrome.tabs.remove(tabId, () => {
+                    console.log("Tab closed");
+                    resolve({ link: "", tabId: tabId });
+                    // });
                   }
                 }
               }
@@ -126,11 +128,12 @@ const searchUser = (user: string): Promise<string> => {
 const sendMessage = (
   id: number,
   url: string,
+  tabId: any,
   message: string,
   sent_to: string
 ): Promise<any> => {
   return new Promise((resolve, reject) => {
-    chrome.tabs.create({ url: url }, (tab) => {
+    chrome.tabs.update(tabId, { url: url }, (tab) => {
       const tabId = tab.id;
       if (!tabId) {
         reject(new Error("Failed to create tab."));
@@ -183,10 +186,10 @@ const message = () => {
 
     if (data.task) {
       const { id, sent_to, message } = data.task;
-      const chatURL = await searchUser(sent_to);
+      const { link: chatURL, tabId } = await searchUser(sent_to);
 
       if (chatURL.length != 0) {
-        const result = await sendMessage(id, chatURL, message, sent_to);
+        const result = await sendMessage(id, chatURL, tabId, message, sent_to);
         await updateTask(id, result.res);
       } else {
         await updateTask(id, {
