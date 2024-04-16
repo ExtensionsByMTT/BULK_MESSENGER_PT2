@@ -14,6 +14,13 @@ const Login = ({ setIsLoggedIn }) => {
     }));
   };
 
+  function generateUniqueId() {
+    const randomStr = Math.random().toString(36).substring(2, 12);
+    const timestamp = new Date().getTime();
+    const uniqueId = randomStr + "-" + timestamp;
+    return uniqueId;
+  }
+
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
@@ -28,9 +35,15 @@ const Login = ({ setIsLoggedIn }) => {
       const data = await response.json();
 
       if (data?.success) {
+        const uniqueId = generateUniqueId();
         const addDataResult = await new Promise<string>((resolve, reject) => {
           chrome.storage.local.set(
-            { token: data.token, role: data.role, username: formData.username },
+            {
+              token: data.token,
+              role: data.role,
+              username: formData.username,
+              clientID: uniqueId,
+            },
             () => {
               resolve("Token saved to local storage");
             }

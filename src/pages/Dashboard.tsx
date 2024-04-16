@@ -93,7 +93,7 @@ C49.575,418.961,150.875,501.261,268.175,488.161z"
                 <button
                   onClick={() => {
                     chrome.storage.local.remove(
-                      ["token", "username", "role"],
+                      ["token", "username", "role", "clientID"],
                       function () {
                         window.location.reload();
                         var error = chrome.runtime.lastError;
