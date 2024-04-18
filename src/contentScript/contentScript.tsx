@@ -10,6 +10,7 @@ const App: React.FC<{}> = () => {
   chrome.storage.local.get("username", (username: username) => {
     setagentName(username.username);
   });
+
   useEffect(() => {
     // Set up a message listener
     const messageListener = async (request, sender, sendResponse) => {
@@ -37,7 +38,12 @@ const App: React.FC<{}> = () => {
             requestId,
             agentname
           );
+
+          console.log("We are in from where we called");
+          console.log("Here is what is got : ", res);
+
           sendResponse({ res });
+          console.log("Sended the response");
         } catch (error) {
           sendResponse({
             status: "failed",
@@ -46,6 +52,10 @@ const App: React.FC<{}> = () => {
             message: message,
           });
         }
+      }
+
+      if (request.action === "DOMISLOADED") {
+        console.log("DOM Loaded");
       }
     };
 
@@ -78,59 +88,82 @@ const App: React.FC<{}> = () => {
     });
   };
 
-  // const verifySentMessage = async (message) => {
-  //   const container = document.getElementById("fua");
-  //   const spanElements = container.querySelectorAll("span");
-  //   const spanWithMessage = Array.from(spanElements).find(
-  //     (span) => span.textContent.trim() === message
-  //   );
+  const verifySentMessage = async (message) => {
+    const container = document.getElementById("fua");
+    const spanElements = container.querySelectorAll("span");
+    const spanWithMessage = Array.from(spanElements).find(
+      (span) => span.textContent.trim() === message
+    );
 
-  //   if (spanWithMessage && spanWithMessage.textContent == message) {
-  //     return true;
-  //   }
-  //   return false;
-  // };
+    if (spanWithMessage && spanWithMessage.textContent == message) {
+      return true;
+    }
+    return false;
+  };
 
   const sendMessage = (id, user, message, requestId, agentname) => {
+    console.log("Params : ", id, user, message, requestId, agentName);
+
     return new Promise(async (resolve, reject) => {
       try {
-        const textAreaField = document.querySelector(
-          'textarea[name="body"]'
-        ) as HTMLTextAreaElement;
-        const buttonField = document.querySelector(
-          'input[name="send"]'
-        ) as HTMLButtonElement;
+        const textBox = document.querySelector('[role="textbox"]');
 
-        if (!textAreaField) {
-          resolve({
-            id,
-            status: "failed",
-            message,
-            user,
-            requestId,
-            agentname,
-          });
-          return; // Exit the function if the textarea is not found
+        if (textBox == null) {
+          console.log("Textbox not Found");
+          resolve({ id, status: "failed", message, user, requestId });
+          // chrome.runtime.sendMessage({ messageData: "CLOSETHISTAB" });
+          return;
+        } else {
+          console.log("Textbox found, proceding next step.....");
         }
 
-        textAreaField.value = message;
+        console.log("Executing InsertText command");
+        document.execCommand("insertText", false, message);
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        console.log("InsertText command executed sucessfully");
 
-        const buttonField2 = document.querySelector(
-          'input[name="Send"]'
-        ) as HTMLButtonElement;
+        const threadComposer = document.querySelector(
+          '[aria-label="Press Enter to send"]'
+        );
 
-        const buttonToClick = buttonField2 || buttonField;
+        if (threadComposer) {
+          console.log("We Found the Send Button");
+          const enterKeyEvent = new KeyboardEvent("keydown", {
+            key: "Enter",
+            code: "Enter",
+            keyCode: 13,
+            which: 13,
+            bubbles: true,
+            cancelable: true,
+          });
 
-        if (buttonToClick) {
-          buttonToClick.click();
+          console.log("Dispatching the Event........");
+          threadComposer.dispatchEvent(enterKeyEvent);
+          console.log("Enter Key Event Dispatched Successfully.");
 
-          resolve({ id, status: "success", message, user, requestId });
-          chrome.runtime.sendMessage({ messageData: "CLOSETHISTAB" });
-        } else {
-          resolve({ id, status: "failed", message, user, requestId });
-          chrome.runtime.sendMessage({ messageData: "CLOSETHISTAB" });
+          // Wait for a short period to allow the event to process
+          setTimeout(() => {
+            console.log("Resolving Promise with : ", {
+              id,
+              status: "success",
+              message,
+              user,
+              requestId,
+            });
+
+            resolve({ id, status: "success", message, user, requestId });
+            // chrome.runtime.sendMessage({ messageData: "CLOSETHISTAB" });
+          }, 500); // Adjust the timeout as needed
         }
       } catch (error) {
+        console.log("Error : ", {
+          id,
+          status: "failed",
+          message,
+          user,
+          requestId,
+          agentname,
+        });
         reject({
           id,
           status: "failed",
@@ -139,7 +172,7 @@ const App: React.FC<{}> = () => {
           requestId,
           agentname,
         });
-        chrome.runtime.sendMessage({ messageData: "CLOSETHISTAB" });
+        // chrome.runtime.sendMessage({ messageData: "CLOSETHISTAB" });
       }
     });
   };

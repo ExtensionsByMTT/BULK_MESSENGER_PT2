@@ -5,8 +5,8 @@ import { formatDate, sortData } from "../utils/utlis";
 import AgentMessagesTable from "./AgentMessageTable";
 import Modal from "./Modal";
 import EditAgent from "./EditAgent";
-// const SERVER_URL = "http://localhost:3001";
-const SERVER_URL = "https://fbm.expertadblocker.com";
+const SERVER_URL = "http://localhost:3001";
+// const SERVER_URL = "https://fbm.expertadblocker.com";
 
 const MODAL_CONTENT_TYPES = {
   MESSAGES: "messages",

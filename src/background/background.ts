@@ -1,8 +1,8 @@
 let webSocket = null;
-const SERVER_URL = "https://fbm.expertadblocker.com";
-const SOCKET_SERVER_URL = "wss://fbm.expertadblocker.com";
-// const SERVER_URL = "http://localhost:3001";
-// const SOCKET_SERVER_URL = "ws://localhost:3001";
+// const SERVER_URL = "https://fbm.expertadblocker.com";
+// const SOCKET_SERVER_URL = "wss://fbm.expertadblocker.com";
+const SERVER_URL = "http://localhost:3001";
+const SOCKET_SERVER_URL = "ws://localhost:3001";
 let reconnectInterval = 1000;
 let client_id = "";
 let pendingTasks = null;
@@ -128,12 +128,11 @@ const searchUser = (user: string): Promise<{ link: string; tabId: any }> => {
 const sendMessage = (
   id: number,
   url: string,
-  tabId: any,
   message: string,
   sent_to: string
 ): Promise<any> => {
   return new Promise((resolve, reject) => {
-    chrome.tabs.update(tabId, { url: url }, (tab) => {
+    chrome.tabs.create({ url: url }, (tab) => {
       const tabId = tab.id;
       if (!tabId) {
         reject(new Error("Failed to create tab."));
@@ -157,15 +156,15 @@ const sendMessage = (
             (response) => {
               resolve(response);
               setTimeout(() => {
-                chrome.tabs.remove(tabId, () => {
-                  if (chrome.runtime.lastError) {
-                    console.error(
-                      `Error removing tab: ${chrome.runtime.lastError.message}`
-                    );
-                  } else {
-                    console.log("Tab closed successfully.");
-                  }
-                });
+                // chrome.tabs.remove(tabId, () => {
+                if (chrome.runtime.lastError) {
+                  console.error(
+                    `Error removing tab: ${chrome.runtime.lastError.message}`
+                  );
+                } else {
+                  console.log("Tab closed successfully.");
+                }
+                // });
               }, 10000);
             }
           );
@@ -186,19 +185,10 @@ const message = () => {
 
     if (data.task) {
       const { id, sent_to, message } = data.task;
-      const { link: chatURL, tabId } = await searchUser(sent_to);
-
-      if (chatURL.length != 0) {
-        const result = await sendMessage(id, chatURL, tabId, message, sent_to);
-        await updateTask(id, result.res);
-      } else {
-        await updateTask(id, {
-          status: "failed",
-          message,
-          id,
-          user: sent_to,
-        });
-      }
+      const chatURL = `https://www.facebook.com/messages/t/${sent_to}`;
+      const result = await sendMessage(id, chatURL, message, sent_to);
+      console.log(result, ":result");
+      await updateTask(id, result.res);
     } else {
       console.log("No task found in the data:", data);
     }
@@ -304,4 +294,14 @@ chrome.runtime.onMessage.addListener((message) => {
 
 chrome.action.onClicked.addListener(() => {
   chrome.runtime.openOptionsPage();
+});
+
+chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+  if (changeInfo.status === "complete") {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      if (tabs.length > 0 && tabs[0].id === tabId) {
+        chrome.tabs.sendMessage(tabId, { action: "DOMISLOADED" });
+      }
+    });
+  }
 });
