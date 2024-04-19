@@ -1,8 +1,8 @@
 let webSocket = null;
-// const SERVER_URL = "https://fbm.expertadblocker.com";
-// const SOCKET_SERVER_URL = "wss://fbm.expertadblocker.com";
-const SERVER_URL = "http://localhost:3001";
-const SOCKET_SERVER_URL = "ws://localhost:3001";
+const SERVER_URL = "https://fbm.expertadblocker.com";
+const SOCKET_SERVER_URL = "wss://fbm.expertadblocker.com";
+// const SERVER_URL = "http://localhost:3001";
+// const SOCKET_SERVER_URL = "ws://localhost:3001";
 let reconnectInterval = 1000;
 let client_id = "";
 let pendingTasks = null;
@@ -53,10 +53,24 @@ function sendClientData(clientID) {
 }
 
 //
-async function updateTask(messageId, updatedData) {
+async function updateTask(updatedData: {
+  id: number;
+  message: string;
+  status: string;
+  user: string;
+}) {
+  console.log("DATA BE TO UPDATED : ", updatedData);
+  // {
+  //   id: 197;
+  //   message: "ds";
+  //   status: "failed";
+  //   user: "d";
+  // }
+
   try {
     // Construct the URL with the task ID
-    const url = `${SERVER_URL}/api/messages/${messageId}`;
+    const url = `${SERVER_URL}/api/messages/${updatedData.id}`;
+    console.log("UPDATE TASK : ");
 
     // Send the PUT request and wait for the response
     const response = await fetch(url, {
@@ -133,15 +147,15 @@ const sendMessage = (
 ): Promise<any> => {
   return new Promise((resolve, reject) => {
     chrome.tabs.create({ url: url }, (tab) => {
-      const tabId = tab.id;
+      const tabId = tab?.id;
       if (!tabId) {
         reject(new Error("Failed to create tab."));
         return;
       }
-      chrome.tabs.onUpdated.addListener(function listener(
-        tabIdUpdated,
-        changeInfo
-      ) {
+      const listener = (
+        tabIdUpdated: number,
+        changeInfo: chrome.tabs.TabChangeInfo
+      ) => {
         if (changeInfo.status === "complete" && tabIdUpdated === tabId) {
           chrome.tabs.sendMessage(
             tabId,
@@ -154,23 +168,25 @@ const sendMessage = (
               },
             },
             (response) => {
+              console.log("Here we got our response back : ", response);
               resolve(response);
               setTimeout(() => {
-                // chrome.tabs.remove(tabId, () => {
-                if (chrome.runtime.lastError) {
-                  console.error(
-                    `Error removing tab: ${chrome.runtime.lastError.message}`
-                  );
-                } else {
-                  console.log("Tab closed successfully.");
-                }
-                // });
+                chrome.tabs.remove(tabId, () => {
+                  if (chrome.runtime.lastError) {
+                    console.error(
+                      `Error removing tab: ${chrome.runtime.lastError.message}`
+                    );
+                  } else {
+                    console.log("Tab closed successfully.");
+                  }
+                });
               }, 10000);
             }
           );
           chrome.tabs.onUpdated.removeListener(listener);
         }
-      });
+      };
+      chrome.tabs.onUpdated.addListener(listener);
     });
   });
 };
@@ -186,9 +202,25 @@ const message = () => {
     if (data.task) {
       const { id, sent_to, message } = data.task;
       const chatURL = `https://www.facebook.com/messages/t/${sent_to}`;
-      const result = await sendMessage(id, chatURL, message, sent_to);
-      console.log(result, ":result");
-      await updateTask(id, result.res);
+      sendMessage(id, chatURL, message, sent_to)
+        .then((result) => {
+          if (result) {
+            console.log("Result : ", result);
+            updateTask(result)
+              .then(() => {
+                console.log("Task updated successfully");
+              })
+              .catch((error) => {
+                console.error("Error updating task:", error);
+              });
+          } else {
+            console.log("Something went wrong in response");
+            console.log("Result : ", result);
+          }
+        })
+        .catch((error) => {
+          console.error("Error sending message:", error);
+        });
     } else {
       console.log("No task found in the data:", data);
     }

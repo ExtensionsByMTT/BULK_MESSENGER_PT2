@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-const SERVER_URL = "http://localhost:3001";
-// const SERVER_URL = "https://fbm.expertadblocker.com";
+// const SERVER_URL = "http://localhost:3001";
+const SERVER_URL = "https://fbm.expertadblocker.com";
 
 const EditAgent = ({ username, token }) => {
   const [isDataFetched, setIsDataFetched] = useState(false);
