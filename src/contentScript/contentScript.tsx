@@ -53,58 +53,84 @@ const App: React.FC<{}> = () => {
     console.log("Params : ", id, user, message, requestId, agentname);
 
     return new Promise((resolve, reject) => {
-      console.log("Executing InsertText command");
-      const isTextEntered = document.execCommand("insertText", false, message);
-      setTimeout(() => {
-        console.log("InsertText command executed successfully");
+      const findTextbox = (attempts = 5, interval = 500) => {
+        const textbox = document.querySelector('[role="textbox"]');
+        console.log("Textbox : ", textbox);
 
-        if (isTextEntered) {
-          const threadComposer = document.querySelector(
-            '[aria-label="Press Enter to send"]'
+        if (textbox) {
+          console.log("Executing InsertText command");
+          const isTextEntered = document.execCommand(
+            "insertText",
+            false,
+            message
           );
+          setTimeout(() => {
+            console.log("InsertText command executed successfully");
 
-          if (threadComposer) {
-            console.log("We Found the Send Button");
-            const enterKeyEvent = new KeyboardEvent("keydown", {
-              key: "Enter",
-              code: "Enter",
-              keyCode: 13,
-              which: 13,
-              bubbles: true,
-              cancelable: true,
-            });
+            if (isTextEntered) {
+              const threadComposer = document.querySelector(
+                '[aria-label="Press Enter to send"]'
+              );
 
-            console.log("Dispatching the Event........");
-            threadComposer.dispatchEvent(enterKeyEvent);
-            console.log("Enter Key Event Dispatched Successfully.");
+              if (threadComposer) {
+                console.log("We Found the Send Button");
+                const enterKeyEvent = new KeyboardEvent("keydown", {
+                  key: "Enter",
+                  code: "Enter",
+                  keyCode: 13,
+                  which: 13,
+                  bubbles: true,
+                  cancelable: true,
+                });
 
-            // Wait for a short period to allow the event to process
-            setTimeout(() => {
-              console.log("Resolving Promise with: ", {
+                console.log("Dispatching the Event........");
+                threadComposer.dispatchEvent(enterKeyEvent);
+                console.log("Enter Key Event Dispatched Successfully.");
+
+                // Wait for a short period to allow the event to process
+                setTimeout(() => {
+                  console.log("Resolving Promise with: ", {
+                    id,
+                    status: "success",
+                    message,
+                    user,
+                    requestId,
+                  });
+                  resolve({ id, status: "success", message, user, requestId });
+                }, 500);
+              } else {
+                console.log("Enter Button not found");
+                reject({
+                  id,
+                  status: "failed",
+                  message,
+                  user,
+                  requestId,
+                  agentname,
+                });
+              }
+            } else {
+              console.log("Text not Entered");
+              reject({
                 id,
-                status: "success",
+                status: "failed",
                 message,
                 user,
                 requestId,
+                agentname,
               });
-              resolve({ id, status: "success", message, user, requestId });
-            }, 500);
-          } else {
-            console.log("Enter Button not found");
-            reject({
-              id,
-              status: "failed",
-              message,
-              user,
-              requestId,
-              agentname,
-            });
-          }
+            }
+          }, 100);
+        } else if (attempts > 0) {
+          console.log(`Textbox not found, retrying in ${interval}ms...`);
+          setTimeout(() => findTextbox(attempts - 1, interval), interval);
         } else {
-          console.log("Text not Entered");
+          console.log("Failed to find textbox after multiple attempts.");
           reject({ id, status: "failed", message, user, requestId, agentname });
         }
-      }, 100);
+      };
+
+      findTextbox();
     });
   };
 

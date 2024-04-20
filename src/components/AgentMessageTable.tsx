@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
-// const SERVER_URL = "http://localhost:3001";
-const SERVER_URL = "https://fbm.expertadblocker.com";
 import {
   formatDate,
   trimMessage,
   sortData,
   statusChangeHandler,
 } from "../utils/utlis";
+import { config } from "../utils/config";
 
 const AgentMessagesTable = ({ user, userType, token }) => {
   const [createdAtSortOrder, setCreatedAtSortOrder] = useState("asc");
@@ -18,7 +17,7 @@ const AgentMessagesTable = ({ user, userType, token }) => {
     if (user != null) {
       const fetchMessages = async () => {
         try {
-          let url = `${SERVER_URL}/api/messages/${user}`;
+          let url = `${config.SERVER_URL}/api/messages/${user}`;
           const response = await fetch(url, {
             method: "GET",
             headers: {
