@@ -49,22 +49,35 @@ const App: React.FC<{}> = () => {
     };
   }, []);
 
-  const sendMessage = (id, user, message, requestId, agentname) => {
-    console.log("Params : ", id, user, message, requestId, agentname);
-
+  const sendMessage = (
+    id,
+    user,
+    message,
+    requestId,
+    agentName,
+    retries = 3
+  ) => {
     return new Promise((resolve, reject) => {
-      console.log("Executing InsertText command");
-      const isTextEntered = document.execCommand("insertText", false, message);
-      setTimeout(() => {
-        console.log("InsertText command executed successfully");
+      console.log("Attempting to execute InsertText command");
+      let attempts = 0;
+      let isMessageSent = false;
 
+      function attemptSend() {
+        if (isMessageSent) {
+          return;
+        }
+
+        const isTextEntered = document.execCommand(
+          "insertText",
+          false,
+          message
+        );
         if (isTextEntered) {
           const threadComposer = document.querySelector(
             '[aria-label="Press Enter to send"]'
           );
-
           if (threadComposer) {
-            console.log("We Found the Send Button");
+            console.log("Text entered, found the Send button");
             const enterKeyEvent = new KeyboardEvent("keydown", {
               key: "Enter",
               code: "Enter",
@@ -74,37 +87,56 @@ const App: React.FC<{}> = () => {
               cancelable: true,
             });
 
-            console.log("Dispatching the Event........");
             threadComposer.dispatchEvent(enterKeyEvent);
             console.log("Enter Key Event Dispatched Successfully.");
 
-            // Wait for a short period to allow the event to process
+            isMessageSent = true;
             setTimeout(() => {
-              console.log("Resolving Promise with: ", {
+              resolve({
                 id,
                 status: "success",
                 message,
                 user,
                 requestId,
               });
-              resolve({ id, status: "success", message, user, requestId });
             }, 500);
           } else {
-            console.log("Enter Button not found");
+            console.log("Send button not found");
+            if (attempts < retries) {
+              retrySending();
+            } else {
+              reject({
+                id,
+                status: "failed",
+                message,
+                user,
+                requestId,
+                agentName,
+              });
+            }
+          }
+        } else {
+          console.log("Text not entered");
+          if (attempts < retries) {
+            retrySending();
+          } else {
             reject({
               id,
               status: "failed",
               message,
               user,
               requestId,
-              agentname,
+              agentName,
             });
           }
-        } else {
-          console.log("Text not Entered");
-          reject({ id, status: "failed", message, user, requestId, agentname });
         }
-      }, 100);
+      }
+      function retrySending() {
+        attempts++;
+        console.log(`Retry attempt ${attempts}`);
+        setTimeout(attemptSend, 1000);
+      }
+      attemptSend();
     });
   };
 
