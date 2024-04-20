@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-// const SERVER_URL = "http://localhost:3001";
-const SERVER_URL = "https://fbm.expertadblocker.com";
+
 import {
   formatDate,
   trimMessage,
   sortData,
   statusChangeHandler,
 } from "../utils/utlis";
+import { config } from "../utils/config";
 
 const MessagesTable = ({
   currentUser,
@@ -27,9 +27,9 @@ const MessagesTable = ({
           let url;
 
           if (userType === "admin") {
-            url = `${SERVER_URL}/api/messages/`;
+            url = `${config.SERVER_URL}/api/messages/`;
           } else if (userType === "agent") {
-            url = `${SERVER_URL}/api/messages/${currentUser}`;
+            url = `${config.SERVER_URL}/api/messages/${currentUser}`;
           } else {
             throw new Error("Invalid User");
           }

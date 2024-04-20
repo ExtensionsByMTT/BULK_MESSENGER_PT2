@@ -58,6 +58,7 @@ const App: React.FC<{}> = () => {
     retries = 3
   ) => {
     return new Promise((resolve, reject) => {
+
       console.log("Attempting to execute InsertText command");
       let attempts = 0;
       let isMessageSent = false;
@@ -94,11 +95,13 @@ const App: React.FC<{}> = () => {
             setTimeout(() => {
               resolve({
                 id,
-                status: "success",
+                status: "failed",
                 message,
                 user,
                 requestId,
+                agentname,
               });
+
             }, 500);
           } else {
             console.log("Send button not found");
