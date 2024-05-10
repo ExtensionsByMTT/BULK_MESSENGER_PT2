@@ -1,8 +1,6 @@
+import { config } from "../utils/config";
+
 let webSocket = null;
-const SERVER_URL = "https://fbm.expertadblocker.com";
-const SOCKET_SERVER_URL = "wss://fbm.expertadblocker.com";
-// const SERVER_URL = "http://localhost:3001";
-// const SOCKET_SERVER_URL = "ws://localhost:3001";
 let reconnectInterval = 1000;
 let client_id = "";
 let pendingTasks = null;
@@ -69,7 +67,7 @@ async function updateTask(updatedData: {
 
   try {
     // Construct the URL with the task ID
-    const url = `${SERVER_URL}/api/messages/${updatedData.id}`;
+    const url = `${config.SERVER_URL}/api/messages/${updatedData.id}`;
     console.log("UPDATE TASK : ");
 
     // Send the PUT request and wait for the response
@@ -235,7 +233,7 @@ const message = () => {
 };
 
 function connect() {
-  webSocket = new WebSocket(SOCKET_SERVER_URL);
+  webSocket = new WebSocket(config.SOCKET_SERVER_URL);
   webSocket.onopen = () => {
     console.log("WebSocket connected");
     chrome.storage.local.get("clientID", (result) => {

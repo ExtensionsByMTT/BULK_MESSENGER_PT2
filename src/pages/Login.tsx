@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-// const SERVER_URL = "http://localhost:3001";
-const SERVER_URL = "https://fbm.expertadblocker.com";
+import { config } from "../utils/config";
 
 const Login = ({ setIsLoggedIn }) => {
   const [formData, setFormData] = useState({ username: "", password: "" });
@@ -24,13 +23,16 @@ const Login = ({ setIsLoggedIn }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${SERVER_URL}/api/auth/users/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = await fetch(
+        `${config.SERVER_URL}/api/auth/users/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
 
       const data = await response.json();
 

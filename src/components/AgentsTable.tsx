@@ -5,8 +5,7 @@ import { formatDate, sortData } from "../utils/utlis";
 import AgentMessagesTable from "./AgentMessageTable";
 import Modal from "./Modal";
 import EditAgent from "./EditAgent";
-// const SERVER_URL = "http://localhost:3001";
-const SERVER_URL = "https://fbm.expertadblocker.com";
+import { config } from "../utils/config";
 
 const MODAL_CONTENT_TYPES = {
   MESSAGES: "messages",
@@ -28,7 +27,7 @@ const AgentsTable = ({ token, userType, currentUser }) => {
     if (currentUser != null) {
       const fetchMessages = async () => {
         try {
-          const response = await fetch(`${SERVER_URL}/api/agents`, {
+          const response = await fetch(`${config.SERVER_URL}/api/agents`, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",

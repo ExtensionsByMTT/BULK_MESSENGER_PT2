@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import MessagesTable from "./MessagesTable";
-// const SERVER_URL = "http://localhost:3001";
-const SERVER_URL = "https://fbm.expertadblocker.com";
+
 
 const History = ({ token, userType, currentUser }) => {
   const [data, setData] = useState([]);
