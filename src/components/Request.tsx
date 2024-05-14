@@ -1,24 +1,70 @@
 import React, { useState } from "react";
 
+interface Agent {
+  agentID: string;
+  username: string;
+  role: string;
+  clientID: string;
+  token: string;
+}
+
 const Request = () => {
   const [message, setMessage] = useState("");
-  const [recipients, setRecipients] = useState("");
+  const [recipients, setRecipients] = useState(
+    "Gaurav, Rahul, Mohit, Anushka, Vaibhav"
+  );
   const [time, setTime] = useState("1");
   const [count, setCount] = useState("2");
 
-  const submitHandler = (e) => {
+  const submitHandler = async (e) => {
     e.preventDefault();
-    const token = chrome.storage.local.get("token", (token) => {
-      const ids = recipients.split(",");
-      const tokenValue = token?.token; // Extract the token value safely
-
-      const data = { message, ids, time, count, token: tokenValue };
-      chrome.runtime.sendMessage({ type: "addTask", data: data }, (res) => {
-        if (res.status === "ok") {
-          console.log("Data sent to Background.js");
-        }
+    const agent: Agent = await new Promise((resolve) => {
+      chrome.storage.local.get("agentID", (agent: Agent) => {
+        resolve(agent);
       });
     });
+
+    const agentToken: Agent = await new Promise((resolve) => {
+      chrome.storage.local.get("token", (agent: Agent) => {
+        resolve(agent);
+      });
+    });
+
+    const users = recipients.split(",");
+    const tokenValue = agent?.agentID; // Extract the token value safely
+    const data = {
+      message,
+      users,
+      interval: time,
+      usersPerInterval: count,
+      agent: tokenValue,
+    };
+
+    try {
+      const response = await fetch("http://localhost:3001/api/tasks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${agentToken.token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      const responseData = await response.json();
+
+      if (response.status !== 201) {
+        throw new Error(responseData.message);
+      }
+
+      alert(responseData.message);
+      setMessage("");
+      setRecipients("");
+      setTime("");
+      setCount("");
+    } catch (error) {
+      console.error("Error:", error);
+      alert(error.message);
+    }
   };
   return (
     <div className="request">

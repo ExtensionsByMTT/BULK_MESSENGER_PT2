@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 const Request = ({ pendingTasks }) => {
   const [message, setMessage] = useState("");
-  const [recipients, setRecipients] = useState("100056104620093");
+  const [recipients, setRecipients] = useState("");
   const [time, setTime] = useState("1");
   const [count, setCount] = useState("2");
 

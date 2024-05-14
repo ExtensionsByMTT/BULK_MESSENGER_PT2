@@ -188,7 +188,7 @@ const AgentsTable = ({ token, userType, currentUser }) => {
                   className="Created"
                   onClick={() =>
                     sortData(
-                      "created_at",
+                      "createdAt",
                       data,
                       filteredData,
                       setFilteredData,

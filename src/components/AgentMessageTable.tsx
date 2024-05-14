@@ -70,7 +70,7 @@ const AgentMessagesTable = ({ user, userType, token }) => {
             className="Created"
             onClick={() =>
               sortData(
-                "created_at",
+                "createdAt",
                 data,
                 filteredData,
                 setFilteredData,

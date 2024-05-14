@@ -3,10 +3,19 @@ import Request from "../components/Request";
 import AgentsTable from "../components/AgentsTable";
 import History from "../components/History";
 
+interface Agent {
+  agentID: string;
+  username: string;
+  role: string;
+  clientID: string;
+  token: string;
+}
+
 const Dashboard = ({ token, userType }) => {
   const [activeLink, setActiveLink] = useState(0);
-  const [currentUser, setCurrentUser] = useState(null);
+
   const [links, setLinks] = useState(["New Message", "History"]);
+  const [currentAgent, setCurrentAgent] = useState({ id: "", username: "" });
 
   const handleLinkClick = (index) => {
     setActiveLink(index);
@@ -14,13 +23,21 @@ const Dashboard = ({ token, userType }) => {
 
   useEffect(() => {
     (async () => {
-      const usernameResult = await new Promise<string>((resolve) => {
-        chrome.storage.local.get("username", (result) => {
-          resolve(result.username || "");
+      const agentID: Agent = await new Promise((resolve) => {
+        chrome.storage.local.get("agentID", (agent: Agent) => {
+          resolve(agent);
+        });
+      });
+      const agentUsername: Agent = await new Promise((resolve) => {
+        chrome.storage.local.get("username", (agent: Agent) => {
+          resolve(agent);
         });
       });
 
-      setCurrentUser(usernameResult);
+      setCurrentAgent({
+        id: agentID.agentID,
+        username: agentUsername.username,
+      });
     })();
   }, []);
 
@@ -64,7 +81,7 @@ const Dashboard = ({ token, userType }) => {
                   >
                     <circle cx="12.1" cy="12.1" r="6" />
                   </svg>
-                  {currentUser}
+                  {currentAgent.username}
                 </h6>
               </div>
               <div className="reload">
@@ -131,7 +148,7 @@ C49.575,418.961,150.875,501.261,268.175,488.161z"
             <History
               token={token}
               userType={userType}
-              currentUser={currentUser}
+              currentAgent={currentAgent}
             />
           )}
         </div>

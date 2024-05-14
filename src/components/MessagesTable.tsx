@@ -9,7 +9,7 @@ import {
 import { config } from "../utils/config";
 
 const MessagesTable = ({
-  currentUser,
+  currentAgent,
   userType,
   token,
   messageData,
@@ -20,16 +20,18 @@ const MessagesTable = ({
   const [createdAtSortOrder, setCreatedAtSortOrder] = useState("asc");
   const [isDataFetched, setIsDataFetched] = useState(false);
 
+  console.log("token : ", token);
+
   useEffect(() => {
-    if (currentUser != null) {
+    if (currentAgent != null) {
       const fetchMessages = async () => {
         try {
           let url;
 
-          if (userType === "admin") {
-            url = `${config.SERVER_URL}/api/messages/`;
-          } else if (userType === "agent") {
-            url = `${config.SERVER_URL}/api/messages/${currentUser}`;
+          if (userType.toLowerCase() === "admin") {
+            url = `${config.SERVER_URL}/api/tasks/`;
+          } else if (userType.toLowerCase() === "agent") {
+            url = `${config.SERVER_URL}/api/users/${currentAgent.id}/tasks`;
           } else {
             throw new Error("Invalid User");
           }
@@ -40,14 +42,15 @@ const MessagesTable = ({
               Authorization: `Bearer ${token}`,
             },
           });
+
+          const data = await response.json();
+
           if (!response.ok) {
             throw new Error("Network response was not ok");
           }
-          const data = await response.json();
-          console.log(data.data);
 
-          setMessageData(data?.data);
-          messageSetFilteredData(data?.data);
+          setMessageData(data);
+          messageSetFilteredData(data);
           setIsDataFetched(true);
         } catch (error) {
           console.error(
@@ -58,7 +61,7 @@ const MessagesTable = ({
       };
       fetchMessages();
     }
-  }, [userType, currentUser]);
+  }, [userType, currentAgent]);
   return (
     <table cellSpacing={0}>
       <thead>
@@ -86,7 +89,7 @@ const MessagesTable = ({
             className="Created"
             onClick={() =>
               sortData(
-                "created_at",
+                "createdAt",
                 messageData,
                 messageFilteredData,
                 messageSetFilteredData,
@@ -115,17 +118,52 @@ const MessagesTable = ({
               <path d="M17 4v16" />
             </svg>
           </th>
+          <th
+            className="Created"
+            onClick={() =>
+              sortData(
+                "createdAt",
+                messageData,
+                messageFilteredData,
+                messageSetFilteredData,
+                createdAtSortOrder,
+                setCreatedAtSortOrder
+              )
+            }
+          >
+            <span>Scheduled At</span>
+
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`${createdAtSortOrder}`}
+            >
+              <path d="m3 16 4 4 4-4" />
+              <path d="M7 20V4" />
+              <path d="m21 8-4-4-4 4" />
+              <path d="M17 4v16" />
+            </svg>
+          </th>
         </tr>
       </thead>
       <tbody>
         {messageFilteredData.length > 0 ? (
           messageFilteredData.map((data) => {
-            const { formattedDate, formattedTime } = formatDate(
-              data.created_at
-            );
+            const { formattedDate, formattedTime } = formatDate(data.createdAt);
+            const {
+              formattedDate: scheduledDate,
+              formattedTime: scheduledTime,
+            } = formatDate(data.scheduledAt);
 
             return (
-              <tr key={data.id} className="data-row">
+              <tr key={data._id} className="data-row">
                 <td className="message">{trimMessage(data.message)}</td>
                 <td className="sent_to">{data.sent_to}</td>
                 <td className="status">
@@ -137,6 +175,10 @@ const MessagesTable = ({
                 <td className="time">
                   <p>{formattedTime}</p>
                   <p>{formattedDate}</p>
+                </td>
+                <td className="time">
+                  <p>{scheduledTime}</p>
+                  <p>{scheduledDate}</p>
                 </td>
               </tr>
             );

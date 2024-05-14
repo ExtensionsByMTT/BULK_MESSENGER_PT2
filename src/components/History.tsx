@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import MessagesTable from "./MessagesTable";
 
-
-const History = ({ token, userType, currentUser }) => {
+const History = ({ token, userType, currentAgent }) => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchInput, setSearchInput] = useState("");
@@ -96,7 +95,7 @@ const History = ({ token, userType, currentUser }) => {
         </div>
         {/* Table  */}
         <MessagesTable
-          currentUser={currentUser}
+          currentAgent={currentAgent}
           token={token}
           userType={userType}
           messageData={data}

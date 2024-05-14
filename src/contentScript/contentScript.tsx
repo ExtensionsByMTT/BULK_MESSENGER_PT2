@@ -18,9 +18,9 @@ const App: React.FC<{}> = () => {
         const id = request.payload.id;
         const user = request.payload.user;
         const message = request.payload.message;
-        const requestId = request.payload.requestId;
+
         const agentname = agentName;
-        sendMessage(id, user, message, requestId, agentname)
+        sendMessage(id, user, message, agentname)
           .then((res) => {
             console.log("We are in from where we called");
             console.log("Here is what is got : ", res);
@@ -49,14 +49,7 @@ const App: React.FC<{}> = () => {
     };
   }, []);
 
-  const sendMessage = (
-    id,
-    user,
-    message,
-    requestId,
-    agentName,
-    retries = 3
-  ) => {
+  const sendMessage = (id, user, message, agentName, retries = 3) => {
     return new Promise((resolve, reject) => {
       console.log("Attempting to execute InsertText command");
       let attempts = 0;
@@ -97,7 +90,6 @@ const App: React.FC<{}> = () => {
                 status: "success",
                 message,
                 user,
-                requestId,
               });
             }, 500);
           } else {
@@ -110,7 +102,6 @@ const App: React.FC<{}> = () => {
                 status: "failed",
                 message,
                 user,
-                requestId,
                 agentName,
               });
             }
@@ -125,7 +116,6 @@ const App: React.FC<{}> = () => {
               status: "failed",
               message,
               user,
-              requestId,
               agentName,
             });
           }

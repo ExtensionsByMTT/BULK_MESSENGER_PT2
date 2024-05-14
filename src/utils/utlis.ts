@@ -22,7 +22,7 @@ export function trimMessage(message, maxLength = 20) {
 }
 
 export const sortData = (
-  column: "created_at",
+  column: "createdAt",
   data,
   filteredData,
   setFilteredData,

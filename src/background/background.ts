@@ -40,8 +40,10 @@ function sendClientData(clientID) {
           webSocket.send(
             JSON.stringify({
               action: "clientID",
-              payload: clientID,
-              token: result.token,
+              payload: {
+                token: result.token,
+                systemID: clientID,
+              },
             })
           );
         }
@@ -51,99 +53,95 @@ function sendClientData(clientID) {
 }
 
 //
-async function updateTask(updatedData: {
-  id: number;
-  message: string;
-  status: string;
-  user: string;
-}) {
-  console.log("DATA BE TO UPDATED : ", updatedData);
-  // {
-  //   id: 197;
-  //   message: "ds";
-  //   status: "failed";
-  //   user: "d";
-  // }
+// async function updateTask(updatedData: {
+//   id: number;
+//   message: string;
+//   status: string;
+//   user: string;
+// }) {
+//   console.log("DATA BE TO UPDATED : ", updatedData);
 
-  try {
-    // Construct the URL with the task ID
-    const url = `${config.SERVER_URL}/api/messages/${updatedData.id}`;
-    console.log("UPDATE TASK : ");
+//   try {
+//     // Construct the URL with the task ID
+//     const url = `${config.SERVER_URL}/api/messages/${updatedData.id}`;
+//     console.log("UPDATE TASK : ");
 
-    // Send the PUT request and wait for the response
-    const response = await fetch(url, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updatedData),
-    });
+//     // Send the PUT request and wait for the response
+//     const response = await fetch(url, {
+//       method: "PUT",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify(updatedData),
+//     });
 
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
+//     if (!response.ok) {
+//       throw new Error("Network response was not ok");
+//     }
 
-    // Parse the response body as JSON
-    const data = await response.json();
-    console.log("Task updated successfully:", data);
-  } catch (error) {
-    console.error("There was a problem updating the task:", error);
-  }
-}
+//     // Parse the response body as JSON
+//     const data = await response.json();
+//     console.log("Task updated successfully:", data);
+//   } catch (error) {
+//     console.error("There was a problem updating the task:", error);
+//   }
+// }
 
 //
-const searchUser = (user: string): Promise<{ link: string; tabId: any }> => {
-  return new Promise((resolve, reject) => {
-    chrome.tabs.create(
-      { url: `https://mbasic.facebook.com/${user}` },
-      (tab) => {
-        const tabId = tab.id;
-        chrome.tabs.onUpdated.addListener(function listener(
-          tabIdUpdated,
-          changeInfo
-        ) {
-          if (changeInfo.status === "complete" && tabIdUpdated === tabId) {
-            chrome.tabs.sendMessage(
-              tabId,
-              {
-                action: "searchForLink",
-              },
-              function (response) {
-                if (chrome.runtime.lastError) {
-                  console.error(chrome.runtime.lastError.message);
-                  reject(chrome.runtime.lastError.message);
-                } else {
-                  if (response.status === "ok") {
-                    // chrome.tabs.remove(tabId, () => {
-                    console.log("Tab closed");
-                    resolve({ link: response.link, tabId: tabId });
-                    // });
-                  } else {
-                    // chrome.tabs.remove(tabId, () => {
-                    console.log("Tab closed");
-                    resolve({ link: "", tabId: tabId });
-                    // });
-                  }
-                }
-              }
-            );
+// const searchUser = (user: string): Promise<{ link: string; tabId: any }> => {
+//   return new Promise((resolve, reject) => {
+//     chrome.tabs.create(
+//       { url: `https://mbasic.facebook.com/${user}` },
+//       (tab) => {
+//         const tabId = tab.id;
+//         chrome.tabs.onUpdated.addListener(function listener(
+//           tabIdUpdated,
+//           changeInfo
+//         ) {
+//           if (changeInfo.status === "complete" && tabIdUpdated === tabId) {
+//             chrome.tabs.sendMessage(
+//               tabId,
+//               {
+//                 action: "searchForLink",
+//               },
+//               function (response) {
+//                 if (chrome.runtime.lastError) {
+//                   console.error(chrome.runtime.lastError.message);
+//                   reject(chrome.runtime.lastError.message);
+//                 } else {
+//                   if (response.status === "ok") {
+//                     // chrome.tabs.remove(tabId, () => {
+//                     console.log("Tab closed");
+//                     resolve({ link: response.link, tabId: tabId });
+//                     // });
+//                   } else {
+//                     // chrome.tabs.remove(tabId, () => {
+//                     console.log("Tab closed");
+//                     resolve({ link: "", tabId: tabId });
+//                     // });
+//                   }
+//                 }
+//               }
+//             );
 
-            chrome.tabs.onUpdated.removeListener(listener);
-          }
-        });
-      }
-    );
-  });
-};
+//             chrome.tabs.onUpdated.removeListener(listener);
+//           }
+//         });
+//       }
+//     );
+//   });
+// };
 
 //
 const sendMessage = (
-  id: number,
+  id: string,
   url: string,
   message: string,
   sent_to: string
 ): Promise<any> => {
   return new Promise((resolve, reject) => {
+    console.log("sendMessage : ", id);
+
     chrome.tabs.create({ url: url }, (tab) => {
       const tabId = tab?.id;
       if (!tabId) {
@@ -193,24 +191,27 @@ const sendMessage = (
 const message = () => {
   webSocket.onmessage = async (e) => {
     const data = JSON.parse(e.data);
+
     if (data.action === "sendMessageToUser") {
       console.log("TASK:", data);
-    }
 
-    if (data.task) {
-      const { id, sent_to, message } = data.task;
+      const { _id, sent_to, message } = data.task;
+      console.log("ID : ", _id);
+
       const chatURL = `https://www.facebook.com/messages/t/${sent_to}`;
-      sendMessage(id, chatURL, message, sent_to)
+      sendMessage(_id, chatURL, message, sent_to)
         .then((result) => {
           if (result) {
             console.log("Result : ", result);
-            updateTask(result)
-              .then(() => {
-                console.log("Task updated successfully");
-              })
-              .catch((error) => {
-                console.error("Error updating task:", error);
-              });
+
+            if (webSocket.readyState === WebSocket.OPEN) {
+              webSocket.send(
+                JSON.stringify({
+                  action: "updateTask",
+                  payload: result,
+                })
+              );
+            }
           } else {
             console.log("Something went wrong in response");
             console.log("Result : ", result);
