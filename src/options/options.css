@@ -143,7 +143,7 @@
         justify-content: space-between;
         /* border-top: 1px solid #8c8c8c; */
         padding: 8px;
-        .reload{
+        .reload {
           display: flex;
           gap: 2vw;
         }
@@ -167,7 +167,6 @@
             font-size: 12px;
             text-transform: lowercase;
           }
-        
         }
 
         button {
@@ -400,153 +399,175 @@
   }
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse; /* This ensures that borders between cells are collapsed into a single border */
+.table {
+  table {
+    width: 100%;
+    border-collapse: collapse; /* This ensures that borders between cells are collapsed into a single border */
+    position: relative;
 
-  tr {
-    th {
-      font-size: 16px;
-      font-weight: bold;
-      margin: 0;
-      color: #252727;
-      text-align: center;
-      width: 20%;
-      padding: 16px 8px;
-    }
-
-    td {
-      font-size: 16px;
-      padding: 8px;
-      width: 20%;
-    }
-
-    .status {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      width: 100%;
-
-      p {
-        width: 60%;
-        height: 100%;
-        padding: 8px;
-        text-align: center;
-        border-radius: 32px;
-      }
-
-      .success,
-      .active {
-        background: #84c4414d;
-        color: #276956;
-      }
-
-      .failed,
-      .inactive {
-        background: #ec20254d;
-        color: #7f2600;
-      }
-
-      .pending {
-        background: #ebff004d;
-        color: #c57600;
-      }
-    }
-
-    .agent,
-    .time {
-      text-align: center;
-    }
-
-    .sent_to,
-    .Sent,
-    .message,
-    .Message,
-    .id {
-      text-align: left;
-    }
-
-    .messages,
-    .edit {
-      text-align: center;
-    }
-
-    .messages {
-      svg {
-        stroke: #1877f2;
-      }
-    }
-
-    .time {
-      & > :first-child {
-        /* border: 1px solid red; */
-      }
-
-      & > :last-child {
-        /* border: 1px solid green; */
-        font-size: 10px;
-      }
-    }
-  }
-
-  .heading-row {
-    border-bottom: 1px solid #8c8c8c;
-    cursor: pointer;
-
-    svg {
-      margin-left: 8px;
-      transition: transform 0.3s ease-in-out;
-    }
-
-    .desc {
-      transform: rotate(180deg);
-    }
-
-    .Status {
-      cursor: pointer;
-      select {
+    tr {
+      th {
         font-size: 16px;
-        border: none;
-        /* appearance: none; 
-        -webkit-appearance: none;
-        -moz-appearance: none;  */
-        outline: none;
         font-weight: bold;
+        margin: 0;
+        color: #252727;
+        text-align: center;
+        width: 20%;
+        padding: 16px 8px;
+      }
 
-        option {
-          font-size: 16px;
-          background: none;
-          color: #252727;
-          font-weight: normal;
+      td {
+        font-size: 16px;
+        padding: 8px;
+        width: 20%;
+      }
+
+      .status {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        width: 100%;
+
+        p {
+          width: 60%;
+          height: 100%;
+          padding: 8px;
+          text-align: center;
+          border-radius: 32px;
+        }
+
+        .success,
+        .active {
+          background: #84c4414d;
+          color: #276956;
+        }
+
+        .failed,
+        .inactive {
+          background: #ec20254d;
+          color: #7f2600;
+        }
+
+        .pending {
+          background: #ebff004d;
+          color: #c57600;
+        }
+      }
+
+      .agent,
+      .time {
+        text-align: center;
+      }
+
+      .sent_to,
+      .Sent,
+      .message,
+      .Message,
+      .id {
+        text-align: left;
+      }
+
+      .messages,
+      .edit {
+        text-align: center;
+      }
+
+      .messages {
+        svg {
+          stroke: #1877f2;
+        }
+      }
+
+      .time {
+        & > :first-child {
+          /* border: 1px solid red; */
+        }
+
+        & > :last-child {
+          /* border: 1px solid green; */
+          font-size: 10px;
         }
       }
     }
-  }
 
-  .data-row {
+    .heading-row {
+      border-bottom: 1px solid #8c8c8c;
+      cursor: pointer;
+
+      svg {
+        margin-left: 8px;
+        transition: transform 0.3s ease-in-out;
+      }
+
+      .desc {
+        transform: rotate(180deg);
+      }
+
+      .Status {
+        cursor: pointer;
+        select {
+          font-size: 16px;
+          border: none;
+          /* appearance: none; 
+          -webkit-appearance: none;
+          -moz-appearance: none;  */
+          outline: none;
+          font-weight: bold;
+
+          option {
+            font-size: 16px;
+            background: none;
+            color: #252727;
+            font-weight: normal;
+          }
+        }
+      }
+    }
+
+    .data-row {
+      cursor: pointer;
+      /* border: 1px solid red; */
+      border-radius: 8px;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .data-row.active {
+      background: rgb(245, 245, 245);
+    }
+
+    .data-row:hover {
+      background: whitesmoke;
+    }
+
+    .data-detail {
+      transition: all 0.2s ease-in-out;
+    }
+
+    .agents-message {
+      background: rgb(245, 245, 245);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+  }
+  .delete {
+    padding: 16px 32px;
+    background: red;
+    font-size: 16px;
+    color: white;
+    border-radius: 30px;
+    border: none;
+    transition: all 0.2s ease-in-out;
     cursor: pointer;
-    /* border: 1px solid red; */
-    border-radius: 8px;
-    transition: all 0.2s ease-in-out;
-  }
 
-  .data-row.active {
-    background: rgb(245, 245, 245);
-  }
+    position: fixed;
+    right: 42px;
+    bottom: 16px;
+    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
 
-  .data-row:hover {
-    background: whitesmoke;
-  }
-
-  .data-detail {
-    transition: all 0.2s ease-in-out;
-  }
-
-  .agents-message {
-    background: rgb(245, 245, 245);
-    padding: 16px;
-    margin-bottom: 16px;
+    &:hover {
+      background: #7f2600;
+    }
   }
 }
 
