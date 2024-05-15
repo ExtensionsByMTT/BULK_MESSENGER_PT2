@@ -314,6 +314,8 @@
 
         .btn {
           button {
+            width: 180px;
+            height: 50px;
             font-size: 16px;
             padding: 16px 32px;
             background-color: #252727;
@@ -322,6 +324,9 @@
             cursor: pointer;
             border-radius: 8px;
             transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
 
             &:hover {
               background-color: #1877f2;
@@ -594,6 +599,15 @@
   left: 50%;
   transform: translate(-50%, -50%);
   border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: transparent;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  animation: spin89345 1s linear infinite;
+}
+
+.request-loader {
+  border: 4px solid rgba(255, 255, 255, 0.1);
   border-left-color: transparent;
   border-radius: 50%;
   width: 36px;

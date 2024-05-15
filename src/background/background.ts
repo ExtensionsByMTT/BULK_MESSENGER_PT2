@@ -297,6 +297,7 @@ function keepAlive() {
   const keepAliveIntervalId = setInterval(() => {
     if (webSocket && webSocket.readyState === WebSocket.OPEN) {
       webSocket.send(JSON.stringify({ action: "keepalive" }));
+      console.log("ALIVE");
     } else {
       clearInterval(keepAliveIntervalId);
     }

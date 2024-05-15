@@ -23,6 +23,10 @@ const MessagesTable = ({
   const [selectAll, setSelectAll] = useState(false);
   const [refresh, setRefresh] = useState(false);
 
+  const [searchInput, setSearchInput] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+
   useEffect(() => {
     if (currentAgent != null) {
       const fetchMessages = async () => {
@@ -53,6 +57,7 @@ const MessagesTable = ({
           setMessageData(data);
           messageSetFilteredData(data);
           setIsDataFetched(true);
+          setRefresh(false);
         } catch (error) {
           console.error(
             "There was a problem with your fetch operation:",
@@ -75,42 +80,113 @@ const MessagesTable = ({
     });
   };
 
-  const handleDelete = async () => {
-    try {
-      console.log("Selected Messages : ", selectedMessages);
-      const response = await fetch(`${config.SERVER_URL}/api/messages`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ messageIds: selectedMessages }),
-      });
-
-      const data = await response.json();
-
-      if (response.status !== 200) {
-        throw new Error(data.message);
-      }
-
-      setRefresh(true);
-      setSelectedMessages([]);
-      alert(data.message);
-    } catch (error) {
-      alert(error.message);
-    }
-  };
-
   const handleSelectAll = () => {
     if (selectAll) {
       setSelectedMessages([]);
       setSelectAll(false);
     } else {
-      const pendingMessages = messageFilteredData.filter(
-        (message) => message.status === "pending"
-      );
-      setSelectedMessages(pendingMessages.map((message) => message.id));
+      setSelectedMessages(messageFilteredData.map((message) => message));
       setSelectAll(true);
     }
+  };
+
+  const deleteScheduledMessages = async (tasks) => {
+    try {
+      for (const task of tasks) {
+        const response = await fetch(
+          `${config.SERVER_URL}/api/tasks/${task._id}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Failed to delete message with ID: ${task._id}`);
+        }
+
+        console.log(`Successfully deleted message with ID: ${task._id}`);
+      }
+    } catch (error) {
+      console.error("An error occurred while deleting messages:", error);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      const scheduledSelectedMessages = selectedMessages.filter(
+        (task) => task.status === "scheduled"
+      );
+
+      const nonScheduledSelectedMessages = selectedMessages.filter(
+        (task) => task.status !== "scheduled"
+      );
+
+      // const response = await fetch(`${config.SERVER_URL}/api/messages`, {
+      //   method: "DELETE",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify({ messageIds: selectedMessages }),
+      // });
+
+      // const data = await response.json();
+
+      // if (response.status !== 200) {
+      //   throw new Error(data.message);
+      // }
+
+      // setRefresh(true);
+      // setSelectedMessages([]);
+      // alert(data.message);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  // TEST
+  const applyAllFilters = (data) => {
+    let filteredData = Array.isArray(data) ? data : [];
+
+    // Apply search filter
+    if (searchInput) {
+      filteredData = filteredData.filter((item) =>
+        Object.values(item).some((value) =>
+          String(value).toLowerCase().includes(searchInput.toLowerCase())
+        )
+      );
+    }
+
+    // Apply status filter
+    if (selectedStatus !== "all") {
+      filteredData = filteredData.filter(
+        (item) => item.status === selectedStatus
+      );
+    }
+
+    // Apply date filter
+    if (selectedDate) {
+      console.log("SELECTED DATA : ", selectedDate);
+      filteredData = filteredData.filter(
+        (item) =>
+          new Date(item.created_at).toDateString() ===
+          new Date(selectedDate).toDateString()
+      );
+    }
+
+    return filteredData;
+  };
+
+  useEffect(() => {
+    const newData = applyAllFilters(messageData);
+    messageSetFilteredData(newData);
+  }, [messageData, searchInput, selectedStatus, selectedDate]);
+
+  const statusChangeHandler = (e) => {
+    setSelectedStatus(e.target.value);
   };
 
   return (
@@ -121,12 +197,7 @@ const MessagesTable = ({
             <th className="Message">Message</th>
             <th className="Sent">Sent To</th>
             <th className="Status">
-              <select
-                defaultValue="Status"
-                onChange={(e) =>
-                  statusChangeHandler(e, messageData, messageFilteredData)
-                }
-              >
+              <select defaultValue="Status" onChange={statusChangeHandler}>
                 <option hidden value="Status">
                   Status
                 </option>
@@ -134,6 +205,7 @@ const MessagesTable = ({
                 <option value="success">Success</option>
                 <option value="failed">Failed</option>
                 <option value="pending">Pending</option>
+                <option value="scheduled">Scheduled</option>
               </select>
             </th>
             {userType === "admin" && <th className="Agent">Agent</th>}
@@ -174,7 +246,7 @@ const MessagesTable = ({
               className="Created"
               onClick={() =>
                 sortData(
-                  "createdAt",
+                  "scheduledAt",
                   messageData,
                   messageFilteredData,
                   messageSetFilteredData,
@@ -241,15 +313,13 @@ const MessagesTable = ({
                     <p>{scheduledTime}</p>
                     <p>{scheduledDate}</p>
                   </td>
-                  {data.status === "pending" && (
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={selectedMessages.includes(data.id)}
-                        onChange={() => handleSelect(data.id)}
-                      />
-                    </td>
-                  )}
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedMessages.includes(data)}
+                      onChange={() => handleSelect(data)}
+                    />
+                  </td>
                 </tr>
               );
             })
@@ -268,6 +338,11 @@ const MessagesTable = ({
           )}
         </tbody>
       </table>
+      {selectedMessages.length > 0 && (
+        <button className="delete" onClick={handleDelete}>
+          Delete
+        </button>
+      )}
     </div>
   );
 };

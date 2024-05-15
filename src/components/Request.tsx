@@ -15,9 +15,11 @@ const Request = () => {
   );
   const [time, setTime] = useState("1");
   const [count, setCount] = useState("2");
+  const [loading, setLoading] = useState(false);
 
   const submitHandler = async (e) => {
     e.preventDefault();
+    setLoading(true);
     const agent: Agent = await new Promise((resolve) => {
       chrome.storage.local.get("agentID", (agent: Agent) => {
         resolve(agent);
@@ -64,6 +66,8 @@ const Request = () => {
     } catch (error) {
       console.error("Error:", error);
       alert(error.message);
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -134,7 +138,13 @@ const Request = () => {
             </select>
           </div>
           <div className="btn">
-            <button onClick={submitHandler}>Send Messages</button>{" "}
+            {loading ? (
+              <button>
+                <div className="request-loader"></div>
+              </button>
+            ) : (
+              <button onClick={submitHandler}>Send Messages</button>
+            )}
           </div>
         </form>
       </div>
