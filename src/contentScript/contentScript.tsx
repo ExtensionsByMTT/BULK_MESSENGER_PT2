@@ -55,7 +55,7 @@ const App: React.FC<{}> = () => {
     message,
     requestId,
     agentName,
-    retries = 3
+    retries = 25
   ) => {
     return new Promise((resolve, reject) => {
       console.log("Attempting to execute InsertText command");
@@ -73,9 +73,18 @@ const App: React.FC<{}> = () => {
           message
         );
         if (isTextEntered) {
-          const threadComposer = document.querySelector(
-            '[aria-label="Press Enter to send"]'
+          const threadComposer = Array.from(
+            document.querySelectorAll(
+              '[aria-label*="Press enter to send"], [aria-label*="Press Enter to send"]'
+            )
+          ).find(
+            (element) =>
+              element
+                .getAttribute("aria-label")
+                .includes("Press enter to send") ||
+              element.getAttribute("aria-label").includes("Press Enter to send")
           );
+
           if (threadComposer) {
             console.log("Text entered, found the Send button");
             const enterKeyEvent = new KeyboardEvent("keydown", {
