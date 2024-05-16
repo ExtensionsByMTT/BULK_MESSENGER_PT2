@@ -49,6 +49,25 @@ const App: React.FC<{}> = () => {
     };
   }, []);
 
+  async function findLastMsg() {
+    const recentMessage = await document.querySelectorAll(
+      "[data-scope='messages_table']"
+    );
+    const spansWithText = [];
+
+    recentMessage.forEach((message) => {
+      const spans = message.querySelectorAll("span");
+      spans.forEach((span) => {
+        if (span.textContent.trim() !== "") {
+          spansWithText.push(span);
+        }
+      });
+    });
+
+    const lastSpanWithText = spansWithText[spansWithText.length - 1];
+    return lastSpanWithText.innerText;
+  }
+
   const sendMessage = (
     id,
     user,
@@ -58,7 +77,22 @@ const App: React.FC<{}> = () => {
     retries = 25
   ) => {
     return new Promise((resolve, reject) => {
-      console.log("Attempting to execute InsertText command");
+      console.log("ATTEMPTING TO EXECUTE INSERTTEXT COMMAND......");
+      const UserNotLoggedIn = document.querySelector("button[name='login']");
+
+      if (UserNotLoggedIn) {
+        reject({
+          id,
+          status: "failed",
+          message,
+          user,
+          requestId,
+          agentName,
+        });
+        console.log("THE USER WAS NOT LOGGEDIN SO WE REJECT THE REQUEST");
+        return;
+      }
+
       let attempts = 0;
       let isMessageSent = false;
 
@@ -72,6 +106,7 @@ const App: React.FC<{}> = () => {
           false,
           message
         );
+
         if (isTextEntered) {
           const threadComposer = Array.from(
             document.querySelectorAll(
@@ -97,18 +132,37 @@ const App: React.FC<{}> = () => {
             });
 
             threadComposer.dispatchEvent(enterKeyEvent);
-            console.log("Enter Key Event Dispatched Successfully.");
-
-            isMessageSent = true;
-            setTimeout(() => {
-              resolve({
-                id,
-                status: "success",
-                message,
-                user,
-                requestId,
-              });
-            }, 500);
+            setTimeout(async () => {
+              const recentMsg = await findLastMsg();
+              console.log(recentMsg);
+              if (recentMsg === "Sent") {
+                isMessageSent = true;
+                resolve({
+                  id,
+                  status: "success",
+                  message,
+                  user,
+                  requestId,
+                });
+                console.log(
+                  "MSG SENDED TO  USER AND CONFIRM WITH SEND FLAG IN MESSAGE TABLE"
+                );
+                return;
+              } else {
+                reject({
+                  id,
+                  status: "failed",
+                  message,
+                  user,
+                  requestId,
+                  agentName,
+                });
+                console.log(
+                  "SOMETHING WENT WRONG AS USER ID IS SUSPENDED BY FACEBOOK OR INTERNAL ERROR"
+                );
+                return;
+              }
+            }, 3000);
           } else {
             console.log("Send button not found");
             if (attempts < retries) {
@@ -125,7 +179,6 @@ const App: React.FC<{}> = () => {
             }
           }
         } else {
-          console.log("Text not entered");
           if (attempts < retries) {
             retrySending();
           } else {
@@ -137,6 +190,9 @@ const App: React.FC<{}> = () => {
               requestId,
               agentName,
             });
+            console.log(
+              "USER DON'T HAVE INPUT TO MESSAGE OR FAILED TO FIND MESSAGE INPUT"
+            );
           }
         }
       }

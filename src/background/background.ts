@@ -169,17 +169,17 @@ const sendMessage = (
               console.log("Here we got our response back : ", response);
               resolve(response);
               if (response) {
-                setTimeout(() => {
-                  chrome.tabs.remove(tabId, () => {
-                    if (chrome.runtime.lastError) {
-                      console.error(
-                        `Error removing tab: ${chrome.runtime.lastError.message}`
-                      );
-                    } else {
-                      console.log("Tab closed successfully.");
-                    }
-                  });
-                }, 10000);
+                // setTimeout(() => {
+                //   chrome.tabs.remove(tabId, () => {
+                //     if (chrome.runtime.lastError) {
+                //       console.error(
+                //         `Error removing tab: ${chrome.runtime.lastError.message}`
+                //       );
+                //     } else {
+                //       console.log("Tab closed successfully.");
+                //     }
+                //   });
+                // }, 10000);
               } else {
                 console.log("NO RESPONSE FROM CS FILE");
               }
