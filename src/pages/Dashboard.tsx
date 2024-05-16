@@ -14,7 +14,7 @@ interface Agent {
 const Dashboard = ({ token, userType }) => {
   const [activeLink, setActiveLink] = useState(0);
 
-  const [links, setLinks] = useState(["New Message", "History"]);
+  const [links, setLinks] = useState(["New Message", "History", "Trash"]);
   const [currentAgent, setCurrentAgent] = useState({ id: "", username: "" });
 
   const handleLinkClick = (index) => {
@@ -151,6 +151,7 @@ C49.575,418.961,150.875,501.261,268.175,488.161z"
               currentAgent={currentAgent}
             />
           )}
+          {activeLink === 2 && <h1>Trash</h1>}
         </div>
       </div>
     </div>

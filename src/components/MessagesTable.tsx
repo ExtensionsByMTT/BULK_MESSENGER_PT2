@@ -90,54 +90,34 @@ const MessagesTable = ({
     }
   };
 
-  const deleteScheduledMessages = async (tasks) => {
+  const handleDelete = async () => {
     try {
-      for (const task of tasks) {
-        const response = await fetch(
-          `${config.SERVER_URL}/api/tasks/${task._id}`,
+      const scheduledSelectedMessages = selectedMessages
+        .filter((task) => task.status === "scheduled")
+        .map((task) => task._id);
+
+      const nonScheduledSelectedMessages = selectedMessages
+        .filter((task) => task.status !== "scheduled")
+        .map((task) => task._id);
+
+      if (nonScheduledSelectedMessages.length > 0) {
+        const nonScheduledResponse = await fetch(
+          `${config.SERVER_URL}/api/tasks`,
           {
             method: "DELETE",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
             },
+            body: JSON.stringify({ taskIds: nonScheduledSelectedMessages }),
           }
         );
-
-        if (!response.ok) {
-          throw new Error(`Failed to delete message with ID: ${task._id}`);
+        const data = await nonScheduledResponse.json();
+        if (nonScheduledResponse.status !== 200) {
+          throw new Error(data.message);
         }
 
-        console.log(`Successfully deleted message with ID: ${task._id}`);
+        alert(data.message);
       }
-    } catch (error) {
-      console.error("An error occurred while deleting messages:", error);
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      const scheduledSelectedMessages = selectedMessages.filter(
-        (task) => task.status === "scheduled"
-      );
-
-      const nonScheduledSelectedMessages = selectedMessages.filter(
-        (task) => task.status !== "scheduled"
-      );
-
-      // const response = await fetch(`${config.SERVER_URL}/api/messages`, {
-      //   method: "DELETE",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify({ messageIds: selectedMessages }),
-      // });
-
-      // const data = await response.json();
-
-      // if (response.status !== 200) {
-      //   throw new Error(data.message);
-      // }
 
       // setRefresh(true);
       // setSelectedMessages([]);
