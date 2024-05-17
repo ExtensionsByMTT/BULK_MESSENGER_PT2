@@ -416,8 +416,8 @@
         font-weight: bold;
         margin: 0;
         color: #252727;
-        text-align: center;
-        width: 20%;
+        text-align: left;
+        /* width: 20%; */
         padding: 16px 8px;
       }
 
@@ -435,11 +435,16 @@
         width: 100%;
 
         p {
-          width: 60%;
+          /* width: 60%; */
           height: 100%;
-          padding: 8px;
+          padding: 8px 16px;
           text-align: center;
           border-radius: 32px;
+        }
+
+        .scheduled {
+          background: #ebff004d;
+          color: #c57600;
         }
 
         .success,
@@ -673,8 +678,8 @@
   background-color: white; /* Background color for the modal content */
   padding: 20px; /* Padding around the content */
   border-radius: 4px; /* Rounded corners */
-  width: 80%; /* Width of the modal content */
-  height: 80%;
+  width: fit-content; /* Width of the modal content */
+  /* height: 80%; */
   overflow-y: scroll;
   scroll-behavior: smooth;
   /* max-width: 500px;  */
@@ -689,4 +694,41 @@
 .edit-user {
   border: 1px solid red;
   height: 100%;
+}
+
+.reason-container {
+  margin-top: 20px;
+
+  textarea {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    resize: none;
+  }
+
+  button {
+    color: white;
+    padding: 14px 20px;
+    border-radius: 4px;
+    margin: 8px 0;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  .delete {
+    background-color: #1877f2;
+  }
+
+  .cancel {
+    background-color: red;
+  }
 }

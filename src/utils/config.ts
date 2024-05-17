@@ -1,4 +1,4 @@
-const production = true;
+const production = false;
 
 const _config = {
   SERVER_URL: production

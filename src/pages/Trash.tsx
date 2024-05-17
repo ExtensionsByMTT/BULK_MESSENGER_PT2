@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
+import Table from "../components/Table";
 import { config } from "../utils/config";
-import Table from "./Table";
 
-const History = ({ token, userType, currentAgent }) => {
+const Trash = ({ token, userType, currentAgent }) => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchInput, setSearchInput] = useState("");
@@ -16,23 +16,22 @@ const History = ({ token, userType, currentAgent }) => {
     "Sent To",
     "Status",
     "Scheduled At",
-    "Created At",
-    "Delete",
+    "Reason",
+    "Deleted At",
   ]);
-
   const [fieldsData, setFieldsData] = useState([
     "message",
     "sent_to",
     "status",
     "scheduledAt",
+    "reason",
     "createdAt",
-    "delete",
   ]);
 
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const url = `${config.SERVER_URL}/api/tasks`;
+        const url = `${config.SERVER_URL}/api/trashes`;
         const response = await fetch(url, {
           method: "GET",
           headers: {
@@ -120,9 +119,9 @@ const History = ({ token, userType, currentAgent }) => {
             </li>
           </ul>
         </div>
-        {/* Table  */}
+
         <Table
-          type="messageTable"
+          type="trashTable"
           fieldsHeading={fieldsHeading}
           fieldsData={fieldsData}
           data={data}
@@ -137,4 +136,4 @@ const History = ({ token, userType, currentAgent }) => {
   );
 };
 
-export default History;
+export default Trash;

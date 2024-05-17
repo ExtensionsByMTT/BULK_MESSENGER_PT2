@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Request from "../components/Request";
-import AgentsTable from "../components/AgentsTable";
 import History from "../components/History";
+import Trash from "./Trash";
 
 interface Agent {
   agentID: string;
@@ -151,7 +151,13 @@ C49.575,418.961,150.875,501.261,268.175,488.161z"
               currentAgent={currentAgent}
             />
           )}
-          {activeLink === 2 && <h1>Trash</h1>}
+          {activeLink === 2 && (
+            <Trash
+              token={token}
+              userType={userType}
+              currentAgent={currentAgent}
+            />
+          )}
         </div>
       </div>
     </div>
