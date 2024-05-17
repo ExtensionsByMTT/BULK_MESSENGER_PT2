@@ -97,57 +97,50 @@ const Table = ({
       return;
     }
 
+    const deleteTasks = async (taskIds, type) => {
+      try {
+        const response = await fetch(`${config.SERVER_URL}/api/tasks`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ taskIds, type, reason: reasonToDelete }),
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to delete tasks");
+        }
+
+        alert(data.message);
+        return data;
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+        throw error;
+      }
+    };
+
     try {
-      const scheduledSelectedMessages = selectedTasks
+      const scheduledTasks = selectedTasks
         .filter((task) => task.status === "scheduled")
         .map((task) => task._id);
 
-      const nonScheduledSelectedMessages = selectedTasks
+      const nonScheduledTasks = selectedTasks
         .filter((task) => task.status !== "scheduled")
         .map((task) => task._id);
 
-      if (scheduledSelectedMessages.length > 0) {
-        const response = await fetch(`${config.SERVER_URL}/api/tasks`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            taskIds: scheduledSelectedMessages,
-            type: "scheduled",
-            reason: reasonToDelete,
-          }),
-        });
-        const data = await response.json();
-        if (response.status !== 200) {
-          throw new Error(data.message);
-        }
-
-        console.log(data.message);
-        alert(data.message);
+      if (scheduledTasks.length > 0) {
+        await deleteTasks(scheduledTasks, "scheduled");
       }
-      if (nonScheduledSelectedMessages.length > 0) {
-        const response = await fetch(`${config.SERVER_URL}/api/tasks`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            taskIds: nonScheduledSelectedMessages,
-            type: "normal",
-            reason: reasonToDelete,
-          }),
-        });
-        const data = await response.json();
-        if (response.status !== 200) {
-          throw new Error(data.message);
-        }
 
-        alert(data.message);
-        setRefresh(true);
-        handleCancel();
+      if (nonScheduledTasks.length > 0) {
+        await deleteTasks(nonScheduledTasks, "normal");
       }
+
+      setRefresh(true);
+      handleCancel();
     } catch (error) {
+      console.error("Error deleting tasks:", error);
       alert(error.message);
     }
   };
