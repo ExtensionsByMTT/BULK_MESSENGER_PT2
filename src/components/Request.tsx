@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-
+import { handleFileUpload } from "./Excel";
 interface Agent {
   agentID: string;
   username: string;
@@ -10,13 +10,11 @@ interface Agent {
 
 const Request = () => {
   const [message, setMessage] = useState("");
-  const [recipients, setRecipients] = useState(
-    "Gaurav, Rahul, Mohit, Anushka, Vaibhav"
-  );
+  const [recipients, setRecipients] = useState("");
   const [time, setTime] = useState("1");
   const [count, setCount] = useState("2");
   const [loading, setLoading] = useState(false);
-
+  const [facebookIds, setFacebookIds] = useState<any[]>([]);
   const submitHandler = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -33,7 +31,7 @@ const Request = () => {
     });
 
     const users = recipients.split(",");
-    const tokenValue = agent?.agentID; // Extract the token value safely
+    const tokenValue = agent?.agentID;
     const data = {
       message,
       users,
@@ -70,6 +68,13 @@ const Request = () => {
       setLoading(false);
     }
   };
+  const handleData = (data: any[]) => {
+    setFacebookIds(data);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFileUpload(e, handleData);
+  };
   return (
     <div className="request">
       <div className="request-container">
@@ -86,14 +91,14 @@ const Request = () => {
               rows={4}
             />
           </div>
-
+          <input type="file" accept=".xlsx, .xls" onChange={handleChange} />
           <div className="input">
             <label htmlFor="userid">Users ID</label>
             <textarea
               name="userid"
               id="userid"
               className="user-link-input"
-              value={recipients}
+              value={recipients || facebookIds}
               onChange={(e) => setRecipients(e.target.value)}
               placeholder="Enter user IDs..."
               rows={5}

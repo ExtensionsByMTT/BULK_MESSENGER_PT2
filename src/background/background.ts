@@ -53,86 +53,6 @@ function sendClientData(clientID) {
 }
 
 //
-// async function updateTask(updatedData: {
-//   id: number;
-//   message: string;
-//   status: string;
-//   user: string;
-// }) {
-//   console.log("DATA BE TO UPDATED : ", updatedData);
-
-//   try {
-//     // Construct the URL with the task ID
-//     const url = `${config.SERVER_URL}/api/messages/${updatedData.id}`;
-//     console.log("UPDATE TASK : ");
-
-//     // Send the PUT request and wait for the response
-//     const response = await fetch(url, {
-//       method: "PUT",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify(updatedData),
-//     });
-
-//     if (!response.ok) {
-//       throw new Error("Network response was not ok");
-//     }
-
-//     // Parse the response body as JSON
-//     const data = await response.json();
-//     console.log("Task updated successfully:", data);
-//   } catch (error) {
-//     console.error("There was a problem updating the task:", error);
-//   }
-// }
-
-//
-// const searchUser = (user: string): Promise<{ link: string; tabId: any }> => {
-//   return new Promise((resolve, reject) => {
-//     chrome.tabs.create(
-//       { url: `https://mbasic.facebook.com/${user}` },
-//       (tab) => {
-//         const tabId = tab.id;
-//         chrome.tabs.onUpdated.addListener(function listener(
-//           tabIdUpdated,
-//           changeInfo
-//         ) {
-//           if (changeInfo.status === "complete" && tabIdUpdated === tabId) {
-//             chrome.tabs.sendMessage(
-//               tabId,
-//               {
-//                 action: "searchForLink",
-//               },
-//               function (response) {
-//                 if (chrome.runtime.lastError) {
-//                   console.error(chrome.runtime.lastError.message);
-//                   reject(chrome.runtime.lastError.message);
-//                 } else {
-//                   if (response.status === "ok") {
-//                     // chrome.tabs.remove(tabId, () => {
-//                     console.log("Tab closed");
-//                     resolve({ link: response.link, tabId: tabId });
-//                     // });
-//                   } else {
-//                     // chrome.tabs.remove(tabId, () => {
-//                     console.log("Tab closed");
-//                     resolve({ link: "", tabId: tabId });
-//                     // });
-//                   }
-//                 }
-//               }
-//             );
-
-//             chrome.tabs.onUpdated.removeListener(listener);
-//           }
-//         });
-//       }
-//     );
-//   });
-// };
-
-//
 const sendMessage = (
   id: string,
   url: string,
@@ -140,8 +60,6 @@ const sendMessage = (
   sent_to: string
 ): Promise<any> => {
   return new Promise((resolve, reject) => {
-    console.log("sendMessage : ", id);
-
     chrome.tabs.create({ url: url }, (tab) => {
       const tabId = tab?.id;
       if (!tabId) {
@@ -166,17 +84,19 @@ const sendMessage = (
             (response) => {
               console.log("Here we got our response back : ", response);
               resolve(response);
-              setTimeout(() => {
-                chrome.tabs.remove(tabId, () => {
-                  if (chrome.runtime.lastError) {
-                    console.error(
-                      `Error removing tab: ${chrome.runtime.lastError.message}`
-                    );
-                  } else {
-                    console.log("Tab closed successfully.");
-                  }
-                });
-              }, 10000);
+              if (response) {
+                // setTimeout(() => {
+                //   chrome.tabs.remove(tabId, () => {
+                //     if (chrome.runtime.lastError) {
+                //       console.error(
+                //         `Error removing tab: ${chrome.runtime.lastError.message}`
+                //       );
+                //     } else {
+                //       console.log("Tab closed successfully.");
+                //     }
+                //   });
+                // }, 5000);
+              }
             }
           );
           chrome.tabs.onUpdated.removeListener(listener);

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { config } from "../utils/config";
 import Table from "./Table";
+import { handleFileDownload } from "./Excel";
 
 const History = ({ token, userType, currentAgent }) => {
   const [data, setData] = useState([]);
@@ -10,7 +11,7 @@ const History = ({ token, userType, currentAgent }) => {
   const [selectedDate, setSelectedDate] = useState("");
   const currentDate = new Date().toISOString().split("T")[0];
   const [refresh, setRefresh] = useState(false);
-
+  const [agentName, setCurrentAgentName] = useState();
   const [fieldsHeading, setFieldsHeading] = useState([
     "Message",
     "Sent To",
@@ -55,6 +56,10 @@ const History = ({ token, userType, currentAgent }) => {
       }
     };
     fetchMessages();
+    chrome.storage.local.get("username", (agent: any) => {
+      setCurrentAgentName(agent.username);
+      console.log(agent);
+    });
   }, [refresh]);
 
   const handleSearchInputChange = (e) => {
@@ -92,7 +97,15 @@ const History = ({ token, userType, currentAgent }) => {
               onChange={handleSearchInputChange}
             />
           </div>
-
+          <div>
+            <button
+              onClick={() =>
+                handleFileDownload(data || filteredData, agentName)
+              }
+            >
+              Download
+            </button>
+          </div>
           <ul className="actions">
             <li className="calender">
               <svg
