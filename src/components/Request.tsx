@@ -91,7 +91,7 @@ const Request = () => {
               rows={4}
             />
           </div>
-          <input type="file" accept=".xlsx, .xls" onChange={handleChange} />
+
           <div className="input">
             <label htmlFor="userid">Users ID</label>
             <textarea
@@ -104,7 +104,19 @@ const Request = () => {
               rows={5}
             />
           </div>
-
+          <div className="excel">
+            <label htmlFor="fileInput" className="custom-file-upload">
+              Upload File
+            </label>
+            <input
+              type="file"
+              id="fileInput"
+              accept=".xlsx,.xls"
+              onChange={handleChange}
+              name=""
+              style={{ display: "none" }}
+            />
+          </div>
           <div className="input">
             <label htmlFor="">Interval</label>
             <select
@@ -128,7 +140,6 @@ const Request = () => {
               <option value="210">3.5hour</option>
             </select>
           </div>
-
           <div className="input">
             <label htmlFor="">Count</label>
             <select

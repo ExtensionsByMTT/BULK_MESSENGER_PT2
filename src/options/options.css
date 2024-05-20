@@ -267,7 +267,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-
     .request-container {
       width: 90%;
       height: 100%;
@@ -280,7 +279,23 @@
         display: flex;
         flex-direction: column;
         gap: 16px;
-
+        .excel {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          .custom-file-upload {
+            padding: 10px;
+            background-color: #252727;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+          }
+          .custom-file-upload:hover {
+            background-color: #1877f2;
+          }
+        }
         .input {
           display: flex;
           flex-direction: column;

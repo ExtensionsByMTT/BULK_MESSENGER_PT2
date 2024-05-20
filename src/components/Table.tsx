@@ -20,7 +20,8 @@ const Table = ({
   const [selectAllTasks, setSelectAllTasks] = useState(false);
   const [reasonToDelete, setReasonToDelete] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [view, setView] = useState();
+  
   const statusChangeHandler = (e) => {
     setSelectedStatus(e.target.value);
   };
@@ -46,7 +47,6 @@ const Table = ({
 
     // Apply date filter
     if (selectedDate) {
-      console.log("SELECTED DATA : ", selectedDate);
       filteredData = filteredData.filter(
         (item) =>
           new Date(item.created_at).toDateString() ===
@@ -149,6 +149,11 @@ const Table = ({
     handleCloseModal();
     setSelectedTasks([]);
   };
+
+  const handleViewTask = (task) => {
+    console.log(task, ":data");
+    setView(task);
+  };
   return (
     <div className="table">
       <table>
@@ -168,14 +173,12 @@ const Table = ({
                           {heading}
                         </option>
                         <option value="all">All</option>
-                        {type === "trashTable" && (
-                          <>
-                            <option value="success">Success</option>
-                            <option value="failed">Failed</option>
-                            <option value="pending">Pending</option>
-                            <option value="scheduled">Scheduled</option>
-                          </>
-                        )}
+                        <>
+                          <option value="success">Success</option>
+                          <option value="failed">Failed</option>
+                          <option value="pending">Pending</option>
+                          <option value="scheduled">Scheduled</option>
+                        </>
                       </select>{" "}
                     </th>
                   );
@@ -278,16 +281,16 @@ const Table = ({
                     case "createdAt":
                       return (
                         <td className="time">
+                          <p>{deleteTime}</p>
                           <p>{deleteDate}</p>
-                          <p className=" text-sm">{deleteTime}</p>
                         </td>
                       );
 
                     case "scheduledAt":
                       return (
                         <td className="time">
+                          <p>{scheduledTime}</p>
                           <p>{scheduledDate}</p>
-                          <p className=" text-sm">{scheduledTime}</p>
                         </td>
                       );
 
@@ -305,6 +308,14 @@ const Table = ({
                       return (
                         <td className="status">
                           <p className={`${data[field]}`}>{data[field]}</p>
+                        </td>
+                      );
+                    case "View":
+                      return (
+                        <td className="View">
+                          <button onClick={() => handleViewTask(data)}>
+                            View
+                          </button>
                         </td>
                       );
 
@@ -359,6 +370,15 @@ const Table = ({
           <button onClick={handleCancel} className="cancel">
             Cancel
           </button>
+        </div>
+      </Modal>
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+        <div>
+          <p>{view?.agent}</p>
+          <p>{view?.message}</p>
+          <p>{view?.reason}</p>
+          <p>{view?.sent_to}</p>
+          <p>{view?.status}</p>
         </div>
       </Modal>
     </div>

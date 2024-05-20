@@ -136,7 +136,7 @@ const App: React.FC<{}> = () => {
                   message,
                   user,
                   reason:
-                    "MSG SENDED TO  USER AND CONFIRM WITH SEND FLAG IN MESSAGE TABLE",
+                    "MSG SENDED TO USER AND CONFIRM WITH SEND FLAG IN MESSAGE TABLE",
                 });
                 console.log(
                   "MSG SENDED TO  USER AND CONFIRM WITH SEND FLAG IN MESSAGE TABLE"

@@ -18,15 +18,16 @@ const History = ({ token, userType, currentAgent }) => {
     "Status",
     "Scheduled At",
     "Created At",
+    "View",
     "Delete",
   ]);
-
   const [fieldsData, setFieldsData] = useState([
     "message",
     "sent_to",
     "status",
     "scheduledAt",
     "createdAt",
+    "View",
     "delete",
   ]);
 
@@ -98,11 +99,7 @@ const History = ({ token, userType, currentAgent }) => {
             />
           </div>
           <div>
-            <button
-              onClick={() =>
-                handleFileDownload(data || filteredData, agentName)
-              }
-            >
+            <button onClick={() => handleFileDownload(filteredData, agentName)}>
               Download
             </button>
           </div>

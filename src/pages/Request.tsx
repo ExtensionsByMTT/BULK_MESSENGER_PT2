@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Socket } from "socket.io-client";
 
 const Request = ({ pendingTasks }) => {
   const [message, setMessage] = useState("");
@@ -99,6 +100,7 @@ const Request = ({ pendingTasks }) => {
                         function () {
                           window.location.reload();
                           var error = chrome.runtime.lastError;
+                          
                           if (error) {
                             console.error(error);
                           }
