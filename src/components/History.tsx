@@ -98,12 +98,15 @@ const History = ({ token, userType, currentAgent }) => {
               onChange={handleSearchInputChange}
             />
           </div>
-          <div>
-            <button onClick={() => handleFileDownload(filteredData, agentName)}>
-              Download
-            </button>
-          </div>
+
           <ul className="actions">
+            <li className="download">
+              <button
+                onClick={() => handleFileDownload(filteredData, agentName)}
+              >
+                Download
+              </button>
+            </li>
             <li className="calender">
               <svg
                 width="27"

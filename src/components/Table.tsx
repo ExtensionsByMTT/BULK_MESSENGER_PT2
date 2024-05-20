@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { formatDate, sortData, trimMessage } from "../utils/utlis";
 import Modal from "./Modal";
 import { config } from "../utils/config";
+import View from "./View";
 
 const Table = ({
   type,
@@ -21,7 +22,9 @@ const Table = ({
   const [reasonToDelete, setReasonToDelete] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [view, setView] = useState();
-  
+  const [modalContent, setModalContent] = useState(null);
+  const [modalType, setModalType] = useState("view");
+
   const statusChangeHandler = (e) => {
     setSelectedStatus(e.target.value);
   };
@@ -81,10 +84,6 @@ const Table = ({
       setSelectedTasks(filteredData.map((message) => message));
       setSelectAllTasks(true);
     }
-  };
-
-  const handleDeleteTasks = async () => {
-    setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
@@ -151,9 +150,16 @@ const Table = ({
   };
 
   const handleViewTask = (task) => {
-    console.log(task, ":data");
     setView(task);
+    setModalType("view");
+    setIsModalOpen(true);
   };
+
+  const handleDeleteTasks = async () => {
+    setModalType("delete");
+    setIsModalOpen(true);
+  };
+
   return (
     <div className="table">
       <table>
@@ -312,7 +318,7 @@ const Table = ({
                       );
                     case "View":
                       return (
-                        <td className="View">
+                        <td className="view">
                           <button onClick={() => handleViewTask(data)}>
                             View
                           </button>
@@ -351,35 +357,29 @@ const Table = ({
           Delete
         </button>
       )}
-      <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
-        <div className="reason-container">
-          <h3>Specify Reason to Delete</h3>
-          <br />
-          <textarea
-            id="reason"
-            name="reason"
-            rows={4}
-            cols={50}
-            value={reasonToDelete}
-            onChange={(e) => setReasonToDelete(e.target.value)}
-          />
-          <br />
-          <button onClick={handleConfirmDeleteTasks} className="delete">
-            Submit
-          </button>
-          <button onClick={handleCancel} className="cancel">
-            Cancel
-          </button>
-        </div>
-      </Modal>
-      <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
-        <div>
-          <p>{view?.agent}</p>
-          <p>{view?.message}</p>
-          <p>{view?.reason}</p>
-          <p>{view?.sent_to}</p>
-          <p>{view?.status}</p>
-        </div>
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal} type={modalType}>
+        {modalType === "delete" && (
+          <div className="reason-container">
+            <h3>Specify Reason to Delete</h3>
+            <br />
+            <textarea
+              id="reason"
+              name="reason"
+              rows={4}
+              cols={50}
+              value={reasonToDelete}
+              onChange={(e) => setReasonToDelete(e.target.value)}
+            />
+            <br />
+            <button onClick={handleConfirmDeleteTasks} className="delete">
+              Submit
+            </button>
+            <button onClick={handleCancel} className="cancel">
+              Cancel
+            </button>
+          </div>
+        )}
+        {modalType === "view" && <View message={view} />}
       </Modal>
     </div>
   );
