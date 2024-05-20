@@ -267,7 +267,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-
     .request-container {
       width: 90%;
       height: 100%;
@@ -280,7 +279,23 @@
         display: flex;
         flex-direction: column;
         gap: 16px;
-
+        .excel {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          .custom-file-upload {
+            padding: 10px;
+            background-color: #252727;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+          }
+          .custom-file-upload:hover {
+            background-color: #1877f2;
+          }
+        }
         .input {
           display: flex;
           flex-direction: column;
@@ -314,6 +329,8 @@
 
         .btn {
           button {
+            width: 180px;
+            height: 50px;
             font-size: 16px;
             padding: 16px 32px;
             background-color: #252727;
@@ -322,6 +339,9 @@
             cursor: pointer;
             border-radius: 8px;
             transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
 
             &:hover {
               background-color: #1877f2;
@@ -394,6 +414,19 @@
             outline: none;
           }
         }
+
+        .download {
+          padding: 0;
+
+          button {
+            padding: 10px;
+            background-color: #252727;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+          }
+        }
       }
     }
   }
@@ -411,8 +444,8 @@
         font-weight: bold;
         margin: 0;
         color: #252727;
-        text-align: center;
-        width: 20%;
+        text-align: left;
+        /* width: 20%; */
         padding: 16px 8px;
       }
 
@@ -430,11 +463,16 @@
         width: 100%;
 
         p {
-          width: 60%;
+          /* width: 60%; */
           height: 100%;
-          padding: 8px;
+          padding: 8px 16px;
           text-align: center;
           border-radius: 32px;
+        }
+
+        .scheduled {
+          background: #ebff004d;
+          color: #c57600;
         }
 
         .success,
@@ -477,6 +515,15 @@
         svg {
           stroke: #1877f2;
         }
+      }
+
+      .view button {
+        padding: 10px;
+        background-color: #252727;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
       }
 
       .time {
@@ -601,6 +648,15 @@
   animation: spin89345 1s linear infinite;
 }
 
+.request-loader {
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-left-color: transparent;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  animation: spin89345 1s linear infinite;
+}
+
 @keyframes spin89345 {
   0% {
     transform: rotate(0deg);
@@ -612,15 +668,15 @@
 }
 
 .modal {
-  position: fixed; /* Fixed positioning */
-  top: 0; /* Align to the top */
-  left: 0; /* Align to the left */
-  width: 100%; /* Full width */
-  height: 100%; /* Full height */
-  display: flex; /* Use flexbox for centering */
-  justify-content: center; /* Center horizontally */
-  align-items: center; /* Center vertically */
-  z-index: 9999; /* Ensure it's above all other content */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
   transition: all 0.2s ease-in-out;
 
   .close-modal {
@@ -655,24 +711,71 @@
 }
 
 .modal-content {
-  /* position: relative; */
+  position: relative;
   background-color: white; /* Background color for the modal content */
   padding: 20px; /* Padding around the content */
   border-radius: 4px; /* Rounded corners */
-  width: 80%; /* Width of the modal content */
-  height: 80%;
+  width: fit-content; /* Width of the modal content */
+  /* height: 80%; */
   overflow-y: scroll;
   scroll-behavior: smooth;
   /* max-width: 500px;  */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Shadow for depth */
   z-index: 2;
   transition: all 0.2s ease-in-out;
+
   &::-webkit-scrollbar {
     display: none;
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: none;
+    background: none;
+    cursor: pointer;
   }
 }
 
 .edit-user {
   border: 1px solid red;
   height: 100%;
+}
+
+.reason-container {
+  margin-top: 20px;
+
+  textarea {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    resize: none;
+  }
+
+  button {
+    color: white;
+    padding: 14px 20px;
+    border-radius: 4px;
+    margin: 8px 0;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  .delete {
+    background-color: #1877f2;
+  }
+
+  .cancel {
+    background-color: red;
+  }
 }

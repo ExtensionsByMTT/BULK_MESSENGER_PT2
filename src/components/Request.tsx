@@ -1,24 +1,79 @@
 import React, { useState } from "react";
+import { handleFileUpload } from "./Excel";
+interface Agent {
+  agentID: string;
+  username: string;
+  role: string;
+  clientID: string;
+  token: string;
+}
 
 const Request = () => {
   const [message, setMessage] = useState("");
   const [recipients, setRecipients] = useState("");
   const [time, setTime] = useState("1");
   const [count, setCount] = useState("2");
-
-  const submitHandler = (e) => {
+  const [loading, setLoading] = useState(false);
+  const [facebookIds, setFacebookIds] = useState<any[]>([]);
+  const submitHandler = async (e) => {
     e.preventDefault();
-    const token = chrome.storage.local.get("token", (token) => {
-      const ids = recipients.split(",");
-      const tokenValue = token?.token; // Extract the token value safely
-
-      const data = { message, ids, time, count, token: tokenValue };
-      chrome.runtime.sendMessage({ type: "addTask", data: data }, (res) => {
-        if (res.status === "ok") {
-          console.log("Data sent to Background.js");
-        }
+    setLoading(true);
+    const agent: Agent = await new Promise((resolve) => {
+      chrome.storage.local.get("agentID", (agent: Agent) => {
+        resolve(agent);
       });
     });
+
+    const agentToken: Agent = await new Promise((resolve) => {
+      chrome.storage.local.get("token", (agent: Agent) => {
+        resolve(agent);
+      });
+    });
+
+    const users = recipients.split(",");
+    const tokenValue = agent?.agentID;
+    const data = {
+      message,
+      users,
+      interval: time,
+      usersPerInterval: count,
+      agent: tokenValue,
+    };
+
+    try {
+      const response = await fetch("http://localhost:3001/api/tasks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${agentToken.token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      const responseData = await response.json();
+
+      if (response.status !== 201) {
+        throw new Error(responseData.message);
+      }
+
+      alert(responseData.message);
+      setMessage("");
+      setRecipients("");
+      setTime("");
+      setCount("");
+    } catch (error) {
+      console.error("Error:", error);
+      alert(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleData = (data: any[]) => {
+    setFacebookIds(data);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFileUpload(e, handleData);
   };
   return (
     <div className="request">
@@ -43,13 +98,25 @@ const Request = () => {
               name="userid"
               id="userid"
               className="user-link-input"
-              value={recipients}
+              value={recipients || facebookIds}
               onChange={(e) => setRecipients(e.target.value)}
               placeholder="Enter user IDs..."
               rows={5}
             />
           </div>
-
+          <div className="excel">
+            <label htmlFor="fileInput" className="custom-file-upload">
+              Upload File
+            </label>
+            <input
+              type="file"
+              id="fileInput"
+              accept=".xlsx,.xls"
+              onChange={handleChange}
+              name=""
+              style={{ display: "none" }}
+            />
+          </div>
           <div className="input">
             <label htmlFor="">Interval</label>
             <select
@@ -73,7 +140,6 @@ const Request = () => {
               <option value="210">3.5hour</option>
             </select>
           </div>
-
           <div className="input">
             <label htmlFor="">Count</label>
             <select
@@ -88,7 +154,13 @@ const Request = () => {
             </select>
           </div>
           <div className="btn">
-            <button onClick={submitHandler}>Send Messages</button>{" "}
+            {loading ? (
+              <button>
+                <div className="request-loader"></div>
+              </button>
+            ) : (
+              <button onClick={submitHandler}>Send Messages</button>
+            )}
           </div>
         </form>
       </div>

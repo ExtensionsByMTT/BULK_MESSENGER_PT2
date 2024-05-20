@@ -22,18 +22,11 @@ const App: React.FC<{}> = () => {
         const agentname = agentName;
         sendMessage(id, user, message, requestId, agentname)
           .then((res) => {
-            console.log("We are in from where we called");
-            console.log("Here is what is got : ", res);
             sendResponse(res);
-            console.log("Sended the response");
+            console.log("response:", res);
           })
           .catch((error) => {
-            sendResponse({
-              status: "failed",
-              id: id,
-              user: user,
-              message: message,
-            });
+            sendResponse(error);
           });
       }
 
@@ -88,6 +81,7 @@ const App: React.FC<{}> = () => {
           user,
           requestId,
           agentName,
+          reason: "THE USER WAS NOT LOGGEDIN SO WE REJECT THE REQUEST",
         });
         console.log("THE USER WAS NOT LOGGEDIN SO WE REJECT THE REQUEST");
         return;
@@ -134,7 +128,6 @@ const App: React.FC<{}> = () => {
             threadComposer.dispatchEvent(enterKeyEvent);
             setTimeout(async () => {
               const recentMsg = await findLastMsg();
-              console.log(recentMsg);
               if (recentMsg === "Sent") {
                 isMessageSent = true;
                 resolve({
@@ -142,7 +135,8 @@ const App: React.FC<{}> = () => {
                   status: "success",
                   message,
                   user,
-                  requestId,
+                  reason:
+                    "MSG SENDED TO USER AND CONFIRM WITH SEND FLAG IN MESSAGE TABLE",
                 });
                 console.log(
                   "MSG SENDED TO  USER AND CONFIRM WITH SEND FLAG IN MESSAGE TABLE"
@@ -154,8 +148,9 @@ const App: React.FC<{}> = () => {
                   status: "failed",
                   message,
                   user,
-                  requestId,
                   agentName,
+                  reason:
+                    "SOMETHING WENT WRONG AS USER ID IS SUSPENDED BY FACEBOOK OR INTERNAL ERROR",
                 });
                 console.log(
                   "SOMETHING WENT WRONG AS USER ID IS SUSPENDED BY FACEBOOK OR INTERNAL ERROR"
@@ -173,7 +168,6 @@ const App: React.FC<{}> = () => {
                 status: "failed",
                 message,
                 user,
-                requestId,
                 agentName,
               });
             }
@@ -187,8 +181,9 @@ const App: React.FC<{}> = () => {
               status: "failed",
               message,
               user,
-              requestId,
               agentName,
+              reason:
+                "USER DON'T HAVE INPUT TO MESSAGE OR FAILED TO FIND MESSAGE INPUT",
             });
             console.log(
               "USER DON'T HAVE INPUT TO MESSAGE OR FAILED TO FIND MESSAGE INPUT"
