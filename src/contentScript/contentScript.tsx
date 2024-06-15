@@ -157,7 +157,7 @@ const App: React.FC<{}> = () => {
                 );
                 return;
               }
-            }, 3000);
+            }, 10000);
           } else {
             console.log("Send button not found");
             if (attempts < retries) {

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { handleFileUpload } from "./Excel";
+import { handleFileUpload } from "../components/Excel";
 import { config } from "../utils/config";
 interface Agent {
   agentID: string;
@@ -42,7 +42,7 @@ const Request = () => {
     };
 
     try {
-      const response = await fetch(`${config.SERVER_URL}/api/tasks`, {
+      const response = await fetch(`${config.SERVER_URL}/AdminKeyModels`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
