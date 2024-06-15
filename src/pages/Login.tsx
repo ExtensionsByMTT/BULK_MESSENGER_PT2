@@ -1,9 +1,17 @@
-import React, { useState } from "react";
-// const SERVER_URL = "http://localhost:3001";
-const SERVER_URL = "https://fbm.expertadblocker.com";
+import React, { useEffect, useState } from "react";
+import { config } from "../utils/config";
 
 const Login = ({ setIsLoggedIn }) => {
   const [formData, setFormData] = useState({ username: "", password: "" });
+  const [currentTabUrl, setCurrentTabUrl] = useState("");
+
+  useEffect(() => {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      var currentTab = tabs[0];
+      var currentTabUrl = currentTab.url;
+      setCurrentTabUrl(currentTabUrl);
+    });
+  }, []);
 
   const handleChange = (e) => {
     e.preventDefault();
@@ -14,36 +22,53 @@ const Login = ({ setIsLoggedIn }) => {
     }));
   };
 
+  function generateUniqueId() {
+    const randomStr = Math.random().toString(36).substring(2, 12);
+    const timestamp = new Date().getTime();
+    const uniqueId = randomStr + "-" + timestamp;
+    return uniqueId;
+  }
+
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${SERVER_URL}/api/auth/users/login`, {
+      const response = await fetch(`${config.SERVER_URL}/api/users/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, currentTabUrl }),
       });
 
       const data = await response.json();
 
-      if (data?.success) {
-        const addDataResult = await new Promise<string>((resolve, reject) => {
-          chrome.storage.local.set(
-            { token: data.token, role: data.role, username: formData.username },
-            () => {
-              resolve("Token saved to local storage");
-            }
-          );
-        });
-        console.log(addDataResult);
-        setIsLoggedIn(true);
-        window.location.reload();
+      if (response.status !== 200) {
+        throw new Error(data.message);
       }
-      console.log(data);
-      alert(data?.message);
+
+      const uniqueId = generateUniqueId();
+      const addDataResult = await new Promise<string>((resolve, reject) => {
+        chrome.storage.local.set(
+          {
+            agentID: data.id,
+            username: data.username,
+            role: data.role,
+            clientID: uniqueId,
+            token: data.token,
+          },
+          () => {
+            resolve("Token saved to local storage");
+          }
+        );
+      });
+      console.log(addDataResult);
+      setIsLoggedIn(true);
+      window.location.reload();
     } catch (error) {
+      setFormData({ username: "", password: "" });
+
       console.error(error.message);
+      alert(error.message);
     }
   };
 

@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
+import Table from "../components/Table";
 import { config } from "../utils/config";
-import Table from "./Table";
-import { handleFileDownload } from "./Excel";
 
-const History = ({ token, userType, currentAgent }) => {
+const Trash = ({ token, userType, currentAgent }) => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchInput, setSearchInput] = useState("");
@@ -11,30 +10,28 @@ const History = ({ token, userType, currentAgent }) => {
   const [selectedDate, setSelectedDate] = useState("");
   const currentDate = new Date().toISOString().split("T")[0];
   const [refresh, setRefresh] = useState(false);
-  const [agentName, setCurrentAgentName] = useState();
+
   const [fieldsHeading, setFieldsHeading] = useState([
     "Message",
     "Sent To",
     "Status",
     "Scheduled At",
-    "Created At",
-    "View",
-    "Delete",
+    "Reason",
+    "Deleted At",
   ]);
   const [fieldsData, setFieldsData] = useState([
     "message",
     "sent_to",
     "status",
     "scheduledAt",
+    "reason",
     "createdAt",
-    "View",
-    "delete",
   ]);
 
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const url = `${config.SERVER_URL}/api/tasks`;
+        const url = `${config.SERVER_URL}/api/trashes`;
         const response = await fetch(url, {
           method: "GET",
           headers: {
@@ -57,10 +54,6 @@ const History = ({ token, userType, currentAgent }) => {
       }
     };
     fetchMessages();
-    chrome.storage.local.get("username", (agent: any) => {
-      setCurrentAgentName(agent.username);
-      console.log(agent);
-    });
   }, [refresh]);
 
   const handleSearchInputChange = (e) => {
@@ -100,13 +93,6 @@ const History = ({ token, userType, currentAgent }) => {
           </div>
 
           <ul className="actions">
-            <li className="download">
-              <button
-                onClick={() => handleFileDownload(filteredData, agentName)}
-              >
-                Download
-              </button>
-            </li>
             <li className="calender">
               <svg
                 width="27"
@@ -133,9 +119,9 @@ const History = ({ token, userType, currentAgent }) => {
             </li>
           </ul>
         </div>
-        {/* Table  */}
+
         <Table
-          type="messageTable"
+          type="trashTable"
           fieldsHeading={fieldsHeading}
           fieldsData={fieldsData}
           data={data}
@@ -150,4 +136,4 @@ const History = ({ token, userType, currentAgent }) => {
   );
 };
 
-export default History;
+export default Trash;

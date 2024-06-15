@@ -10,43 +10,27 @@ const App: React.FC<{}> = () => {
   chrome.storage.local.get("username", (username: username) => {
     setagentName(username.username);
   });
+
   useEffect(() => {
     // Set up a message listener
-    const messageListener = async (request, sender, sendResponse) => {
-      if (request.action === "searchForLink") {
-        try {
-          const link = await searchForLink();
-          sendResponse({ status: "ok", link });
-        } catch (error) {
-          console.error("Error handling message:", error);
-          sendResponse({ status: "error", message: error.message });
-        }
-      }
-
+    const messageListener = (request, sender, sendResponse) => {
       if (request.action === "sendMessage") {
         const id = request.payload.id;
         const user = request.payload.user;
         const message = request.payload.message;
         const requestId = request.payload.requestId;
         const agentname = agentName;
-        try {
-          const res = await sendMessage(
-            id,
-            user,
-            message,
-            requestId,
-            agentname
-          );
-          sendResponse({ res });
-        } catch (error) {
-          sendResponse({
-            status: "failed",
-            id: id,
-            user: user,
-            message: message,
+        sendMessage(id, user, message, requestId, agentname)
+          .then((res) => {
+            sendResponse(res);
+            console.log("response:", res);
+          })
+          .catch((error) => {
+            sendResponse(error);
           });
-        }
       }
+
+      return true;
     };
 
     // Add the listener
@@ -58,89 +42,161 @@ const App: React.FC<{}> = () => {
     };
   }, []);
 
-  // Function to search for the link after the page is loaded
-  const searchForLink = () => {
-    return new Promise<string>((resolve, reject) => {
-      const link = document.querySelector('a[href*="messages/thread"]');
-      if (link) {
-        // Assert the type of link to HTMLAnchorElement
-        const anchorLink = link as HTMLAnchorElement;
-        console.log("Link found:", anchorLink.href);
-        // Resolve the promise with the href of the anchorLink
-        resolve(anchorLink.href);
-      } else {
-        console.log("Link not found");
+  async function findLastMsg() {
+    const recentMessage = await document.querySelectorAll(
+      "[data-scope='messages_table']"
+    );
+    const spansWithText = [];
 
-        // Resolve the promise with an empty string or a specific error message
-        // depending on how you want to handle this case
-        resolve(""); // or resolve("Link not found");
-      }
+    recentMessage.forEach((message) => {
+      const spans = message.querySelectorAll("span");
+      spans.forEach((span) => {
+        if (span.textContent.trim() !== "") {
+          spansWithText.push(span);
+        }
+      });
     });
-  };
 
-  // const verifySentMessage = async (message) => {
-  //   const container = document.getElementById("fua");
-  //   const spanElements = container.querySelectorAll("span");
-  //   const spanWithMessage = Array.from(spanElements).find(
-  //     (span) => span.textContent.trim() === message
-  //   );
+    const lastSpanWithText = spansWithText[spansWithText.length - 1];
+    return lastSpanWithText.innerText;
+  }
 
-  //   if (spanWithMessage && spanWithMessage.textContent == message) {
-  //     return true;
-  //   }
-  //   return false;
-  // };
+  const sendMessage = (
+    id,
+    user,
+    message,
+    requestId,
+    agentName,
+    retries = 25
+  ) => {
+    return new Promise((resolve, reject) => {
+      console.log("ATTEMPTING TO EXECUTE INSERTTEXT COMMAND......");
+      const UserNotLoggedIn = document.querySelector("button[name='login']");
 
-  const sendMessage = (id, user, message, requestId, agentname) => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const textAreaField = document.querySelector(
-          'textarea[name="body"]'
-        ) as HTMLTextAreaElement;
-        const buttonField = document.querySelector(
-          'input[name="send"]'
-        ) as HTMLButtonElement;
-
-        if (!textAreaField) {
-          resolve({
-            id,
-            status: "failed",
-            message,
-            user,
-            requestId,
-            agentname,
-          });
-          return; // Exit the function if the textarea is not found
-        }
-
-        textAreaField.value = message;
-
-        const buttonField2 = document.querySelector(
-          'input[name="Send"]'
-        ) as HTMLButtonElement;
-
-        const buttonToClick = buttonField2 || buttonField;
-
-        if (buttonToClick) {
-          buttonToClick.click();
-
-          resolve({ id, status: "success", message, user, requestId });
-          chrome.runtime.sendMessage({ messageData: "CLOSETHISTAB" });
-        } else {
-          resolve({ id, status: "failed", message, user, requestId });
-          chrome.runtime.sendMessage({ messageData: "CLOSETHISTAB" });
-        }
-      } catch (error) {
+      if (UserNotLoggedIn) {
         reject({
           id,
           status: "failed",
           message,
           user,
           requestId,
-          agentname,
+          agentName,
+          reason: "THE USER WAS NOT LOGGEDIN SO WE REJECT THE REQUEST",
         });
-        chrome.runtime.sendMessage({ messageData: "CLOSETHISTAB" });
+        console.log("THE USER WAS NOT LOGGEDIN SO WE REJECT THE REQUEST");
+        return;
       }
+
+      let attempts = 0;
+      let isMessageSent = false;
+
+      function attemptSend() {
+        if (isMessageSent) {
+          return;
+        }
+
+        const isTextEntered = document.execCommand(
+          "insertText",
+          false,
+          message
+        );
+
+        if (isTextEntered) {
+          const threadComposer = Array.from(
+            document.querySelectorAll(
+              '[aria-label*="Press enter to send"], [aria-label*="Press Enter to send"]'
+            )
+          ).find(
+            (element) =>
+              element
+                .getAttribute("aria-label")
+                .includes("Press enter to send") ||
+              element.getAttribute("aria-label").includes("Press Enter to send")
+          );
+
+          if (threadComposer) {
+            console.log("Text entered, found the Send button");
+            const enterKeyEvent = new KeyboardEvent("keydown", {
+              key: "Enter",
+              code: "Enter",
+              keyCode: 13,
+              which: 13,
+              bubbles: true,
+              cancelable: true,
+            });
+
+            threadComposer.dispatchEvent(enterKeyEvent);
+            setTimeout(async () => {
+              const recentMsg = await findLastMsg();
+              if (recentMsg === "Sent") {
+                isMessageSent = true;
+                resolve({
+                  id,
+                  status: "success",
+                  message,
+                  user,
+                  reason:
+                    "MSG SENDED TO USER AND CONFIRM WITH SEND FLAG IN MESSAGE TABLE",
+                });
+                console.log(
+                  "MSG SENDED TO  USER AND CONFIRM WITH SEND FLAG IN MESSAGE TABLE"
+                );
+                return;
+              } else {
+                reject({
+                  id,
+                  status: "failed",
+                  message,
+                  user,
+                  agentName,
+                  reason:
+                    "SOMETHING WENT WRONG AS USER ID IS SUSPENDED BY FACEBOOK OR INTERNAL ERROR",
+                });
+                console.log(
+                  "SOMETHING WENT WRONG AS USER ID IS SUSPENDED BY FACEBOOK OR INTERNAL ERROR"
+                );
+                return;
+              }
+            }, 10000);
+          } else {
+            console.log("Send button not found");
+            if (attempts < retries) {
+              retrySending();
+            } else {
+              reject({
+                id,
+                status: "failed",
+                message,
+                user,
+                agentName,
+              });
+            }
+          }
+        } else {
+          if (attempts < retries) {
+            retrySending();
+          } else {
+            reject({
+              id,
+              status: "failed",
+              message,
+              user,
+              agentName,
+              reason:
+                "USER DON'T HAVE INPUT TO MESSAGE OR FAILED TO FIND MESSAGE INPUT",
+            });
+            console.log(
+              "USER DON'T HAVE INPUT TO MESSAGE OR FAILED TO FIND MESSAGE INPUT"
+            );
+          }
+        }
+      }
+      function retrySending() {
+        attempts++;
+        console.log(`Retry attempt ${attempts}`);
+        setTimeout(attemptSend, 1000);
+      }
+      attemptSend();
     });
   };
 

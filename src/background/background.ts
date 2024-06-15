@@ -1,8 +1,6 @@
+import { config } from "../utils/config";
+
 let webSocket = null;
-const SERVER_URL = "https://fbm.expertadblocker.com";
-const SOCKET_SERVER_URL = "wss://fbm.expertadblocker.com";
-// const SERVER_URL = "http://localhost:3001";
-// const SOCKET_SERVER_URL = "ws://localhost:3001";
 let reconnectInterval = 1000;
 let client_id = "";
 let pendingTasks = null;
@@ -42,8 +40,10 @@ function sendClientData(clientID) {
           webSocket.send(
             JSON.stringify({
               action: "clientID",
-              payload: clientID,
-              token: result.token,
+              payload: {
+                token: result.token,
+                systemID: clientID,
+              },
             })
           );
         }
@@ -53,96 +53,23 @@ function sendClientData(clientID) {
 }
 
 //
-async function updateTask(messageId, updatedData) {
-  try {
-    // Construct the URL with the task ID
-    const url = `${SERVER_URL}/api/messages/${messageId}`;
-
-    // Send the PUT request and wait for the response
-    const response = await fetch(url, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updatedData),
-    });
-
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-
-    // Parse the response body as JSON
-    const data = await response.json();
-    console.log("Task updated successfully:", data);
-  } catch (error) {
-    console.error("There was a problem updating the task:", error);
-  }
-}
-
-//
-const searchUser = (user: string): Promise<{ link: string; tabId: any }> => {
-  return new Promise((resolve, reject) => {
-    chrome.tabs.create(
-      { url: `https://mbasic.facebook.com/${user}` },
-      (tab) => {
-        const tabId = tab.id;
-        chrome.tabs.onUpdated.addListener(function listener(
-          tabIdUpdated,
-          changeInfo
-        ) {
-          if (changeInfo.status === "complete" && tabIdUpdated === tabId) {
-            chrome.tabs.sendMessage(
-              tabId,
-              {
-                action: "searchForLink",
-              },
-              function (response) {
-                if (chrome.runtime.lastError) {
-                  console.error(chrome.runtime.lastError.message);
-                  reject(chrome.runtime.lastError.message);
-                } else {
-                  if (response.status === "ok") {
-                    // chrome.tabs.remove(tabId, () => {
-                    console.log("Tab closed");
-                    resolve({ link: response.link, tabId: tabId });
-                    // });
-                  } else {
-                    // chrome.tabs.remove(tabId, () => {
-                    console.log("Tab closed");
-                    resolve({ link: "", tabId: tabId });
-                    // });
-                  }
-                }
-              }
-            );
-
-            chrome.tabs.onUpdated.removeListener(listener);
-          }
-        });
-      }
-    );
-  });
-};
-
-//
 const sendMessage = (
-  id: number,
+  id: string,
   url: string,
-  tabId: any,
   message: string,
   sent_to: string
 ): Promise<any> => {
   return new Promise((resolve, reject) => {
-    chrome.tabs.update(tabId, { url: url }, (tab) => {
-      const tabId = tab.id;
+    chrome.tabs.create({ url: url }, (tab) => {
+      const tabId = tab?.id;
       if (!tabId) {
         reject(new Error("Failed to create tab."));
         return;
       }
-      chrome.tabs.onUpdated.addListener(function listener(
-        tabIdUpdated,
-        changeInfo
-      ) {
+      const listener = (
+        tabIdUpdated: number,
+        changeInfo: chrome.tabs.TabChangeInfo
+      ) => {
         if (changeInfo.status === "complete" && tabIdUpdated === tabId) {
           chrome.tabs.sendMessage(
             tabId,
@@ -155,23 +82,27 @@ const sendMessage = (
               },
             },
             (response) => {
+              console.log("Here we got our response back : ", response);
               resolve(response);
-              setTimeout(() => {
-                chrome.tabs.remove(tabId, () => {
-                  if (chrome.runtime.lastError) {
-                    console.error(
-                      `Error removing tab: ${chrome.runtime.lastError.message}`
-                    );
-                  } else {
-                    console.log("Tab closed successfully.");
-                  }
-                });
-              }, 10000);
+              if (response) {
+                setTimeout(() => {
+                  chrome.tabs.remove(tabId, () => {
+                    if (chrome.runtime.lastError) {
+                      console.error(
+                        `Error removing tab: ${chrome.runtime.lastError.message}`
+                      );
+                    } else {
+                      console.log("Tab closed successfully.");
+                    }
+                  });
+                }, 5000);
+              }
             }
           );
           chrome.tabs.onUpdated.removeListener(listener);
         }
-      });
+      };
+      chrome.tabs.onUpdated.addListener(listener);
     });
   });
 };
@@ -180,25 +111,35 @@ const sendMessage = (
 const message = () => {
   webSocket.onmessage = async (e) => {
     const data = JSON.parse(e.data);
+
     if (data.action === "sendMessageToUser") {
       console.log("TASK:", data);
-    }
 
-    if (data.task) {
-      const { id, sent_to, message } = data.task;
-      const { link: chatURL, tabId } = await searchUser(sent_to);
+      const { _id, sent_to, message } = data.task;
+      console.log("ID : ", _id);
 
-      if (chatURL.length != 0) {
-        const result = await sendMessage(id, chatURL, tabId, message, sent_to);
-        await updateTask(id, result.res);
-      } else {
-        await updateTask(id, {
-          status: "failed",
-          message,
-          id,
-          user: sent_to,
+      const chatURL = `https://www.facebook.com/messages/t/${sent_to}`;
+      sendMessage(_id, chatURL, message, sent_to)
+        .then((result) => {
+          if (result) {
+            console.log("Result : ", result);
+
+            if (webSocket.readyState === WebSocket.OPEN) {
+              webSocket.send(
+                JSON.stringify({
+                  action: "updateTask",
+                  payload: result,
+                })
+              );
+            }
+          } else {
+            console.log("Something went wrong in response");
+            console.log("Result : ", result);
+          }
+        })
+        .catch((error) => {
+          console.error("Error sending message:", error);
         });
-      }
     } else {
       console.log("No task found in the data:", data);
     }
@@ -213,7 +154,7 @@ const message = () => {
 };
 
 function connect() {
-  webSocket = new WebSocket(SOCKET_SERVER_URL);
+  webSocket = new WebSocket(config.SOCKET_SERVER_URL);
   webSocket.onopen = () => {
     console.log("WebSocket connected");
     chrome.storage.local.get("clientID", (result) => {
@@ -276,6 +217,7 @@ function keepAlive() {
   const keepAliveIntervalId = setInterval(() => {
     if (webSocket && webSocket.readyState === WebSocket.OPEN) {
       webSocket.send(JSON.stringify({ action: "keepalive" }));
+      console.log("ALIVE");
     } else {
       clearInterval(keepAliveIntervalId);
     }
@@ -304,4 +246,14 @@ chrome.runtime.onMessage.addListener((message) => {
 
 chrome.action.onClicked.addListener(() => {
   chrome.runtime.openOptionsPage();
+});
+
+chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+  if (changeInfo.status === "complete") {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      if (tabs.length > 0 && tabs[0].id === tabId) {
+        chrome.tabs.sendMessage(tabId, { action: "DOMISLOADED" });
+      }
+    });
+  }
 });
