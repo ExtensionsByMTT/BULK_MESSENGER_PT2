@@ -20,7 +20,7 @@ const View = ({ message }) => {
         }}
       >
         <span style={{ fontWeight: "bold" }}>Agent : </span>{" "}
-        <p>{message.agent}</p>
+        <p>{message.agent?.name}</p>
       </div>
       <div
         style={{

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { handleFileUpload } from "./Excel";
+import { config } from "../utils/config";
 interface Agent {
   agentID: string;
   username: string;
@@ -41,7 +42,7 @@ const Request = () => {
     };
 
     try {
-      const response = await fetch("http://localhost:3001/api/tasks", {
+      const response = await fetch(`${config.SERVER_URL}/api/tasks`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

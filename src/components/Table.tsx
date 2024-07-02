@@ -150,6 +150,8 @@ const Table = ({
   };
 
   const handleViewTask = (task) => {
+    console.log("Task to view : ", task);
+
     setView(task);
     setModalType("view");
     setIsModalOpen(true);
@@ -301,11 +303,6 @@ const Table = ({
                       );
 
                     case "message":
-                      return (
-                        <td className="message">{trimMessage(data[field])}</td>
-                      );
-
-                    case "reason":
                       return (
                         <td className="message">{trimMessage(data[field])}</td>
                       );
