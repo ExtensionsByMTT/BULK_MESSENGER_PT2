@@ -22,7 +22,7 @@ export function trimMessage(message, maxLength = 20) {
 }
 
 export const sortData = (
-  column: "created_at",
+  column,
   data,
   filteredData,
   setFilteredData,
@@ -32,8 +32,8 @@ export const sortData = (
   const dataToSort = filteredData.length > 0 ? filteredData : data;
 
   const sortedData = [...dataToSort].sort((a, b) => {
-    const dateA = new Date(a[column]).getTime(); // Parse and convert to numeric timestamp
-    const dateB = new Date(b[column]).getTime(); // Parse and convert to numeric timestamp
+    const dateA = new Date(a[column]).getTime();
+    const dateB = new Date(b[column]).getTime();
     const sortOrder = createdAtSortOrder;
 
     return sortOrder === "asc" ? dateA - dateB : dateB - dateA;

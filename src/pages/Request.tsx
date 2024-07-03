@@ -1,8 +1,9 @@
 import React, { useState } from "react";
+import { Socket } from "socket.io-client";
 
 const Request = ({ pendingTasks }) => {
   const [message, setMessage] = useState("");
-  const [recipients, setRecipients] = useState("100056104620093");
+  const [recipients, setRecipients] = useState("");
   const [time, setTime] = useState("1");
   const [count, setCount] = useState("2");
 
@@ -99,6 +100,7 @@ const Request = ({ pendingTasks }) => {
                         function () {
                           window.location.reload();
                           var error = chrome.runtime.lastError;
+                          
                           if (error) {
                             console.error(error);
                           }

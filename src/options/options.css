@@ -143,7 +143,7 @@
         justify-content: space-between;
         /* border-top: 1px solid #8c8c8c; */
         padding: 8px;
-        .reload{
+        .reload {
           display: flex;
           gap: 2vw;
         }
@@ -167,7 +167,6 @@
             font-size: 12px;
             text-transform: lowercase;
           }
-        
         }
 
         button {
@@ -268,7 +267,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-
     .request-container {
       width: 90%;
       height: 100%;
@@ -281,7 +279,23 @@
         display: flex;
         flex-direction: column;
         gap: 16px;
-
+        .excel {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          .custom-file-upload {
+            padding: 10px;
+            background-color: #252727;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+          }
+          .custom-file-upload:hover {
+            background-color: #1877f2;
+          }
+        }
         .input {
           display: flex;
           flex-direction: column;
@@ -315,6 +329,8 @@
 
         .btn {
           button {
+            width: 180px;
+            height: 50px;
             font-size: 16px;
             padding: 16px 32px;
             background-color: #252727;
@@ -323,6 +339,9 @@
             cursor: pointer;
             border-radius: 8px;
             transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
 
             &:hover {
               background-color: #1877f2;
@@ -395,158 +414,207 @@
             outline: none;
           }
         }
+
+        .download {
+          padding: 0;
+
+          button {
+            padding: 10px;
+            background-color: #252727;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+          }
+        }
       }
     }
   }
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse; /* This ensures that borders between cells are collapsed into a single border */
+.table {
+  table {
+    width: 100%;
+    border-collapse: collapse; /* This ensures that borders between cells are collapsed into a single border */
+    position: relative;
 
-  tr {
-    th {
-      font-size: 16px;
-      font-weight: bold;
-      margin: 0;
-      color: #252727;
-      text-align: center;
-      width: 20%;
-      padding: 16px 8px;
-    }
-
-    td {
-      font-size: 16px;
-      padding: 8px;
-      width: 20%;
-    }
-
-    .status {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      width: 100%;
-
-      p {
-        width: 60%;
-        height: 100%;
-        padding: 8px;
-        text-align: center;
-        border-radius: 32px;
-      }
-
-      .success,
-      .active {
-        background: #84c4414d;
-        color: #276956;
-      }
-
-      .failed,
-      .inactive {
-        background: #ec20254d;
-        color: #7f2600;
-      }
-
-      .pending {
-        background: #ebff004d;
-        color: #c57600;
-      }
-    }
-
-    .agent,
-    .time {
-      text-align: center;
-    }
-
-    .sent_to,
-    .Sent,
-    .message,
-    .Message,
-    .id {
-      text-align: left;
-    }
-
-    .messages,
-    .edit {
-      text-align: center;
-    }
-
-    .messages {
-      svg {
-        stroke: #1877f2;
-      }
-    }
-
-    .time {
-      & > :first-child {
-        /* border: 1px solid red; */
-      }
-
-      & > :last-child {
-        /* border: 1px solid green; */
-        font-size: 10px;
-      }
-    }
-  }
-
-  .heading-row {
-    border-bottom: 1px solid #8c8c8c;
-    cursor: pointer;
-
-    svg {
-      margin-left: 8px;
-      transition: transform 0.3s ease-in-out;
-    }
-
-    .desc {
-      transform: rotate(180deg);
-    }
-
-    .Status {
-      cursor: pointer;
-      select {
+    tr {
+      th {
         font-size: 16px;
-        border: none;
-        /* appearance: none; 
-        -webkit-appearance: none;
-        -moz-appearance: none;  */
-        outline: none;
         font-weight: bold;
+        margin: 0;
+        color: #252727;
+        text-align: left;
+        /* width: 20%; */
+        padding: 16px 8px;
+      }
 
-        option {
-          font-size: 16px;
-          background: none;
-          color: #252727;
-          font-weight: normal;
+      td {
+        font-size: 16px;
+        padding: 8px;
+        width: 20%;
+      }
+
+      .status {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        width: 100%;
+
+        p {
+          /* width: 60%; */
+          height: 100%;
+          padding: 8px 16px;
+          text-align: center;
+          border-radius: 32px;
+        }
+
+        .scheduled {
+          background: #ebff004d;
+          color: #c57600;
+        }
+
+        .success,
+        .active {
+          background: #84c4414d;
+          color: #276956;
+        }
+
+        .failed,
+        .inactive {
+          background: #ec20254d;
+          color: #7f2600;
+        }
+
+        .pending {
+          background: #ebff004d;
+          color: #c57600;
+        }
+      }
+
+      .agent,
+      .time {
+        text-align: center;
+      }
+
+      .sent_to,
+      .Sent,
+      .message,
+      .Message,
+      .id {
+        text-align: left;
+      }
+
+      .messages,
+      .edit {
+        text-align: center;
+      }
+
+      .messages {
+        svg {
+          stroke: #1877f2;
+        }
+      }
+
+      .view button {
+        padding: 10px;
+        background-color: #252727;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      .time {
+        & > :first-child {
+          /* border: 1px solid red; */
+        }
+
+        & > :last-child {
+          /* border: 1px solid green; */
+          font-size: 10px;
         }
       }
     }
-  }
 
-  .data-row {
+    .heading-row {
+      border-bottom: 1px solid #8c8c8c;
+      cursor: pointer;
+
+      svg {
+        margin-left: 8px;
+        transition: transform 0.3s ease-in-out;
+      }
+
+      .desc {
+        transform: rotate(180deg);
+      }
+
+      .Status {
+        cursor: pointer;
+        select {
+          font-size: 16px;
+          border: none;
+          /* appearance: none; 
+          -webkit-appearance: none;
+          -moz-appearance: none;  */
+          outline: none;
+          font-weight: bold;
+
+          option {
+            font-size: 16px;
+            background: none;
+            color: #252727;
+            font-weight: normal;
+          }
+        }
+      }
+    }
+
+    .data-row {
+      cursor: pointer;
+      /* border: 1px solid red; */
+      border-radius: 8px;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .data-row.active {
+      background: rgb(245, 245, 245);
+    }
+
+    .data-row:hover {
+      background: whitesmoke;
+    }
+
+    .data-detail {
+      transition: all 0.2s ease-in-out;
+    }
+
+    .agents-message {
+      background: rgb(245, 245, 245);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+  }
+  .delete {
+    padding: 16px 32px;
+    background: red;
+    font-size: 16px;
+    color: white;
+    border-radius: 30px;
+    border: none;
+    transition: all 0.2s ease-in-out;
     cursor: pointer;
-    /* border: 1px solid red; */
-    border-radius: 8px;
-    transition: all 0.2s ease-in-out;
-  }
 
-  .data-row.active {
-    background: rgb(245, 245, 245);
-  }
+    position: fixed;
+    right: 42px;
+    bottom: 16px;
+    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
 
-  .data-row:hover {
-    background: whitesmoke;
-  }
-
-  .data-detail {
-    transition: all 0.2s ease-in-out;
-  }
-
-  .agents-message {
-    background: rgb(245, 245, 245);
-    padding: 16px;
-    margin-bottom: 16px;
+    &:hover {
+      background: #7f2600;
+    }
   }
 }
 
@@ -580,6 +648,15 @@ table {
   animation: spin89345 1s linear infinite;
 }
 
+.request-loader {
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-left-color: transparent;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  animation: spin89345 1s linear infinite;
+}
+
 @keyframes spin89345 {
   0% {
     transform: rotate(0deg);
@@ -591,15 +668,15 @@ table {
 }
 
 .modal {
-  position: fixed; /* Fixed positioning */
-  top: 0; /* Align to the top */
-  left: 0; /* Align to the left */
-  width: 100%; /* Full width */
-  height: 100%; /* Full height */
-  display: flex; /* Use flexbox for centering */
-  justify-content: center; /* Center horizontally */
-  align-items: center; /* Center vertically */
-  z-index: 9999; /* Ensure it's above all other content */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
   transition: all 0.2s ease-in-out;
 
   .close-modal {
@@ -634,24 +711,71 @@ table {
 }
 
 .modal-content {
-  /* position: relative; */
+  position: relative;
   background-color: white; /* Background color for the modal content */
   padding: 20px; /* Padding around the content */
   border-radius: 4px; /* Rounded corners */
-  width: 80%; /* Width of the modal content */
-  height: 80%;
+  width: fit-content; /* Width of the modal content */
+  /* height: 80%; */
   overflow-y: scroll;
   scroll-behavior: smooth;
   /* max-width: 500px;  */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Shadow for depth */
   z-index: 2;
   transition: all 0.2s ease-in-out;
+
   &::-webkit-scrollbar {
     display: none;
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: none;
+    background: none;
+    cursor: pointer;
   }
 }
 
 .edit-user {
   border: 1px solid red;
   height: 100%;
+}
+
+.reason-container {
+  margin-top: 20px;
+
+  textarea {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    resize: none;
+  }
+
+  button {
+    color: white;
+    padding: 14px 20px;
+    border-radius: 4px;
+    margin: 8px 0;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  .delete {
+    background-color: #1877f2;
+  }
+
+  .cancel {
+    background-color: red;
+  }
 }

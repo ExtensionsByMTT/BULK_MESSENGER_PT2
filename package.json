@@ -32,6 +32,7 @@
     "socket.io-client": "^4.7.5",
     "tailwind": "^4.0.0",
     "uninstall": "^0.0.0",
-    "websocket": "^1.0.34"
+    "websocket": "^1.0.34",
+    "xlsx": "^0.18.5"
   }
 }
