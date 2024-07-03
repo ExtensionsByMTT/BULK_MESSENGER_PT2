@@ -31,7 +31,12 @@ const Request = () => {
       });
     });
 
-    const users = recipients.split(",");
+    let users: string[];
+    if (recipients==="") {
+      users = facebookIds; 
+    } else {
+      users = recipients.split(',');
+    }
     const tokenValue = agent?.agentID;
     const data = {
       message,
@@ -105,6 +110,7 @@ const Request = () => {
               rows={5}
             />
           </div>
+          {console.log("Recip:", recipients, "Face:", facebookIds)}
           <div className="excel">
             <label htmlFor="fileInput" className="custom-file-upload">
               Upload File

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Table from "../components/Table";
 import { config } from "../utils/config";
+import { handleFileDownload } from "../components/Excel";
 
 const Trash = ({ token, userType, currentAgent }) => {
   const [data, setData] = useState([]);
@@ -93,6 +94,13 @@ const Trash = ({ token, userType, currentAgent }) => {
           </div>
 
           <ul className="actions">
+            <li className="download">
+              <button
+                onClick={() => handleFileDownload(filteredData, "trashes")}
+              >
+                Download
+              </button>
+            </li>
             <li className="calender">
               <svg
                 width="27"
