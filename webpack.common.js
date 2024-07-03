@@ -11,6 +11,7 @@ module.exports = {
     background: path.resolve("src/background/background.ts"),
     contentScript: path.resolve("src/contentScript/contentScript.tsx"),
     Login: path.resolve("src/pages/Login.tsx"),
+    Excel: path.resolve("src/contentScript/Excel.tsx"),
   },
   module: {
     rules: [
@@ -53,7 +54,7 @@ module.exports = {
   optimization: {
     splitChunks: {
       chunks(chunk) {
-        const excludedChunks = ["contentScript", "Login"];
+        const excludedChunks = ["contentScript", "Login", "Excel"];
         return !excludedChunks.includes(chunk.name);
       },
     },
