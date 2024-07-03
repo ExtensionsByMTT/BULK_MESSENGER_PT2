@@ -39,8 +39,18 @@ export const handleFileUpload = (
 };
 
 export const handleFileDownload = (data, agentName) => {
-  const worksheet = XLSX?.utils?.json_to_sheet(data);
-  const workbook = XLSX?.utils?.book_new();
+  console.log("Data before processing:", data);
+
+  // Process data to include only agent name
+  const processedData = data.map((item) => ({
+    ...item,
+    agent: item.agent?.name || "N/A",
+  }));
+
+  console.log("Processed Data:", processedData);
+
+  const worksheet = XLSX.utils.json_to_sheet(processedData);
+  const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
   XLSX.writeFile(workbook, `${agentName}.xlsx`);
 };
