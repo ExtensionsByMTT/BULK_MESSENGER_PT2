@@ -49,12 +49,15 @@ const Table = ({
     }
 
     // Apply date filter
-    if (selectedDate) {
-      filteredData = filteredData.filter(
-        (item) =>
-          new Date(item.created_at).toDateString() ===
-          new Date(selectedDate).toDateString()
-      );
+    if (selectedDate?.startDate && selectedDate?.endDate) {
+      const start = new Date(selectedDate.startDate).setHours(0, 0, 0, 0);
+      const end = new Date(selectedDate.endDate).setHours(23, 59, 59, 999);
+    
+      filteredData = filteredData.filter((item) => {
+        const createdAt = new Date(item.createdAt).getTime();
+        return createdAt >= start && createdAt <= end;
+      });
+
     }
 
     return filteredData;
