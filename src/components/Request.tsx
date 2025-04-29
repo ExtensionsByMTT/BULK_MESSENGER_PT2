@@ -41,7 +41,7 @@ const Request = () => {
     const data = {
       message,
       users,
-      interval: time,
+      interval: time || "1",
       usersPerInterval: count,
       agent: tokenValue,
     };
