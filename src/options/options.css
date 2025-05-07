@@ -257,7 +257,10 @@
 #bulkMessenger .dashboard .container .right {
   flex: 1;
   height: 100%;
-  padding: 32px;
+  padding-top: 5px;
+  padding-left: 32px;
+  padding-bottom: 32px;
+  padding-right: 32px;
   overflow-y: scroll;
   scroll-behavior: smooth;
 
@@ -360,11 +363,15 @@
 #bulkMessenger .dashboard .container .right .history {
   .history-container {
     .top {
-      top: 0;
+      top: -10px;
       display: flex;
       align-items: center;
+      position: sticky;
+      z-index: 999;
+      background: #fff;
       justify-content: space-between;
-      margin-bottom: 32px;
+      padding-bottom: 10px;
+      padding-top: 20px;
 
       .search {
         display: flex;
@@ -373,6 +380,7 @@
         border-radius: 32px;
         width: 50%;
         height: 50px;
+        margin-right: 10px;
         padding: 0px 16px;
 
         input {
