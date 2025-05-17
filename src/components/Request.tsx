@@ -65,8 +65,6 @@ const Request = () => {
       alert(responseData.message);
       setMessage("");
       setRecipients("");
-      setTime("");
-      setCount("");
     } catch (error) {
       console.error("Error:", error);
       alert(error.message);
