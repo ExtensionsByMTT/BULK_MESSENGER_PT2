@@ -7,7 +7,6 @@ export const handleFileUpload = (
 ) => {
   const reader = new FileReader();
   const file = e.target.files ? e.target.files[0] : null;
-
   if (file) {
     reader.readAsBinaryString(file);
     reader.onload = (e) => {

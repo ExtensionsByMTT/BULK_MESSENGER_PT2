@@ -61,6 +61,25 @@ const App: React.FC<{}> = () => {
     return lastSpanWithText.innerText;
   }
 
+  function waitForContinueButton(timeout = 5000, interval = 250): Promise<HTMLElement> {
+    return new Promise((resolve, reject) => {
+      const start = Date.now();
+      const check = () => {
+      
+      
+        const el = document.querySelector('div[aria-label="Continue"]');
+        if (el) {
+          resolve(el as HTMLElement);
+        } else if (Date.now() - start >= timeout) {
+          reject("Continue button not found within timeout");
+        } else {
+          setTimeout(check, interval);
+        }
+      };
+      check();
+    });
+  }
+
   const sendMessage = (
     id,
     user,
@@ -90,10 +109,23 @@ const App: React.FC<{}> = () => {
       let attempts = 0;
       let isMessageSent = false;
 
+     
+
       function attemptSend() {
         if (isMessageSent) {
           return;
         }
+
+        waitForContinueButton()
+        .then((continueBtn) => {
+          console.log("Found Continue button, clicking...");
+          continueBtn.click();
+          focusMessageInput();
+        })
+        .catch((err) => {
+          console.warn("Continue button not found. Proceeding anyway.", err);
+          focusMessageInput();
+        });
 
         const isTextEntered = document.execCommand(
           "insertText",
@@ -196,7 +228,34 @@ const App: React.FC<{}> = () => {
         console.log(`Retry attempt ${attempts}`);
         setTimeout(attemptSend, 1000);
       }
+
+
+      function focusMessageInput(maxRetries = 10, interval = 100) {
+        let focusAttempts = 0;
+  
+        const tryFocus = () => {
+          const inputDiv = document.querySelector('div[aria-label="Message"]') as HTMLDivElement;
+          console.log("Trying to focus on Message input...", inputDiv);
+          if (inputDiv) {
+            inputDiv.focus();
+            console.log("✅ Focused on Message input");
+            return;
+          }
+  
+          if (focusAttempts < maxRetries) {
+            focusAttempts++;
+            setTimeout(tryFocus, interval);
+          } else {
+            console.warn("⚠️ Could not find or focus Message input after multiple attempts");
+          }
+        };
+  
+        tryFocus();
+      }
+
       attemptSend();
+
+
     });
   };
 
